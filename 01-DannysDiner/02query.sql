@@ -235,3 +235,56 @@ SELECT
 	SUM(total_points) AS total_points
 FROM CTE_membership_points
 GROUP BY customer_id;
+
+
+
+
+-- BONUS QUESTIONS
+
+
+-- 1. Join All The Things
+
+CREATE OR REPLACE VIEW joined_table AS (
+	SELECT
+		sales.customer_id,
+		sales.order_date,
+		menu.product_name,
+		menu.price,
+		CASE
+			WHEN members.join_date IS NULL THEN "N"
+			WHEN members.join_date > sales.order_date THEN "N"
+			ELSE "Y"
+		END AS member
+	FROM sales
+	LEFT JOIN members
+		ON members.customer_id = sales.customer_id
+	JOIN menu
+		ON menu.product_id = sales.product_id
+	ORDER BY sales.customer_id, sales.order_date
+);
+
+-- If this is outputting "No Data", you need to refresh the database
+-- or just run the query inside the CREATE VIEW function
+SELECT *
+FROM joined_table;
+
+
+-- 2. Rank All The Things
+
+-- assuming this is ranked by date of purchased after becoming a member
+
+CREATE OR REPLACE VIEW rankings_table AS (
+	SELECT
+		*,
+		CASE 
+			WHEN member = 'N' THEN null
+			ELSE DENSE_RANK() OVER (PARTITION BY customer_id, member ORDER BY order_date)
+		END AS ranking
+	FROM
+		joined_table
+);
+
+
+-- Refresh the database before running this query
+SELECT *
+FROM rankings_table;
