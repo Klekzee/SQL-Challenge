@@ -9,6 +9,9 @@ LEFT JOIN menu AS m
 GROUP BY s.customer_id;
 
 
+
+
+
 -- 2. How many days has each customer visited the restaurant?
 
 SELECT 
@@ -16,6 +19,9 @@ SELECT
 	COUNT(DISTINCT(order_date)) AS days_visited
 FROM sales
 GROUP BY customer_id;
+
+
+
 
 
 -- 3. What was the first item from the menu purchased by each customer?
@@ -39,6 +45,9 @@ WHERE
 	ranking = 1;
 
 
+
+
+
 -- 4. What is the most purchased item on the menu and how many times was it purchased by all customers?
 
 SELECT
@@ -50,6 +59,9 @@ JOIN sales AS s
 GROUP BY m.product_name
 ORDER BY total_purchased DESC
 LIMIT 1;
+
+
+
 
 
 -- 5. Which item was the most popular for each customer?
@@ -73,6 +85,9 @@ SELECT
 FROM CTE_most_popular_item
 WHERE
 	ranking = 1;
+
+
+
 
 
 -- 6. Which item was purchased first by the customer after they became a member?
@@ -103,6 +118,9 @@ WHERE
 	ranking = 1;
 
 
+
+
+
 -- 7. Which item was purchased just before the customer became a member?
 
 WITH CTE_first_purchace_members AS (
@@ -129,6 +147,9 @@ SELECT
 FROM CTE_first_purchace_members
 WHERE
 	ranking = 1;
+
+
+
 
 
 -- 8. What is the total items and amount spent for each member before they became a member?
@@ -174,6 +195,9 @@ WHERE
 GROUP BY customer_id;
 
 
+
+
+
 -- 9.  If each $1 spent equates to 10 points and sushi has a 2x points multiplier - how many points would each customer have?
 
 WITH CTE_sushi_points AS (
@@ -196,6 +220,9 @@ SELECT
 	SUM(total_points) AS total_points
 FROM CTE_sushi_points
 GROUP BY customer_id;
+
+
+
 
 
 -- 10. In the first week after a customer joins the program (including their join date) they earn 2x points on all items, not just sushi 
@@ -239,6 +266,7 @@ GROUP BY customer_id;
 
 
 
+
 -- BONUS QUESTIONS
 
 
@@ -267,6 +295,9 @@ CREATE OR REPLACE VIEW joined_table AS (
 -- or just run the query inside the CREATE VIEW function
 SELECT *
 FROM joined_table;
+
+
+
 
 
 -- 2. Rank All The Things
