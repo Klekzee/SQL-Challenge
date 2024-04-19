@@ -55,5 +55,22 @@
 * Customer A: 1370 points
 * Customer B: 1020 points
 
+<br>
+<br>
+<br>
+
 # Bonus Questions
 
+The following questions are related creating basic data tables that Danny and his team can use to quickly derive insights without needing to join the underlying tables using SQL.
+
+## Join All The Things
+
+Recreate the following table output using the available data:
+
+![1](99img2.png)
+
+## Rank All The Things
+
+Danny also requires further information about the ranking of customer products, but he purposely does not need the ranking for non-member purchases so he expects null ranking values for the records when customers are not yet part of the loyalty program.
+
+![2](99img3.png)
