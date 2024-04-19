@@ -130,4 +130,46 @@ WHERE
 	ranking = 1;
 
 
+-- 8. What is the total items and amount spent for each member before they became a member?
 
+WITH CTE_items_purchased_by_each_customer AS (
+	SELECT
+		members.customer_id,
+		members.join_date,
+		sales.order_date,
+		sales.product_id,
+		menu.product_name,
+		menu.price
+	FROM members
+	JOIN sales
+		ON sales.customer_id = members.customer_id
+	JOIN menu
+		ON menu.product_id = sales.product_id
+	WHERE
+		sales.order_date < members.join_date
+)
+
+SELECT
+	customer_id,
+	COUNT(*) AS total_items,
+	SUM(price) AS total_amount
+FROM CTE_items_purchased_by_each_customer
+GROUP BY customer_id;
+
+-- 8. Alternate Soln.
+
+SELECT
+	members.customer_id,
+	COUNT(*) AS total_items,
+	SUM(menu.price) AS total_amount
+FROM members
+JOIN sales
+	ON sales.customer_id = members.customer_id
+JOIN menu
+	ON menu.product_id = sales.product_id
+WHERE
+	sales.order_date < members.join_date
+GROUP BY customer_id;
+
+
+-- 9.  If each $1 spent equates to 10 points and sushi has a 2x points multiplier - how many points would each customer have?
