@@ -156,6 +156,7 @@ SELECT
 FROM CTE_items_purchased_by_each_customer
 GROUP BY customer_id;
 
+
 -- 8. Alternate Soln.
 
 SELECT
@@ -173,3 +174,63 @@ GROUP BY customer_id;
 
 
 -- 9.  If each $1 spent equates to 10 points and sushi has a 2x points multiplier - how many points would each customer have?
+
+WITH CTE_sushi_points AS (
+	SELECT
+		sales.customer_id,
+		sales.product_id,
+		menu.product_name,
+		menu.price,
+		CASE
+			WHEN menu.product_name = "sushi" THEN (menu.price * 10) * 2
+			ELSE menu.price * 10
+		END AS total_points
+	FROM sales
+	JOIN menu
+		ON menu.product_id = sales.product_id
+)
+
+SELECT
+	customer_id,
+	SUM(total_points) AS total_points
+FROM CTE_sushi_points
+GROUP BY customer_id;
+
+
+-- 10. In the first week after a customer joins the program (including their join date) they earn 2x points on all items, not just sushi 
+-- how many points do customer A and B have at the end of January?
+
+-- assuming sushi is still 2x
+-- If member AND sush then multiplier is 4x
+
+WITH CTE_membership_points AS (
+	SELECT 
+		members.customer_id,
+		members.join_date,
+		sales.order_date,
+		menu.product_name,
+		menu.price,
+		CASE
+			WHEN sales.order_date >= members.join_date AND sales.order_date < DATE_ADD(members.join_date, INTERVAL 7 DAY) AND menu.product_name = "sushi"
+				THEN (menu.price * 10) * 2 * 2
+			WHEN sales.order_date >= members.join_date AND sales.order_date < DATE_ADD(members.join_date, INTERVAL 7 DAY)
+				THEN (menu.price * 10) * 2
+			WHEN product_name = "sushi"
+				THEN (menu.price * 10) * 2
+			ELSE menu.price * 10
+		END AS total_points
+	FROM sales
+	JOIN members
+		ON members.customer_id = sales.customer_id
+	JOIN menu
+		ON menu.product_id = sales.product_id
+	WHERE
+		sales.order_date BETWEEN "2021-01-01" AND "2021-01-31"
+	ORDER BY members.join_date
+)
+
+SELECT
+	customer_id,
+	SUM(total_points) AS total_points
+FROM CTE_membership_points
+GROUP BY customer_id;
