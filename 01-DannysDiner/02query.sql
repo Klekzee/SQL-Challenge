@@ -102,8 +102,32 @@ WHERE
 	ranking = 1;
 
 
+-- 7. Which item was purchased just before the customer became a member?
 
+WITH CTE_first_purchace_members AS (
+	SELECT
+		mem.customer_id,
+        mem.join_date,
+        s.order_date,
+        menu.product_name,
+        RANK() OVER (PARTITION BY mem.customer_id ORDER BY s.order_date DESC) AS ranking
+	FROM members AS mem
+    LEFT JOIN sales AS s
+		ON s.customer_id = mem.customer_id
+	LEFT JOIN menu
+		ON menu.product_id = s.product_id
+	WHERE
+		s.order_date < mem.join_date
+)
 
+SELECT
+	customer_id,
+    join_date,
+    order_date,
+    product_name
+FROM CTE_first_purchace_members
+WHERE
+	ranking = 1;
 
 
 
