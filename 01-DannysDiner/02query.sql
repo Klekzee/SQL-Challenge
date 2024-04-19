@@ -261,7 +261,8 @@ SELECT
 	customer_id,
 	SUM(total_points) AS total_points
 FROM CTE_membership_points
-GROUP BY customer_id;
+GROUP BY customer_id
+ORDER BY customer_id;
 
 
 
