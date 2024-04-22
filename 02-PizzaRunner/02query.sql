@@ -210,6 +210,20 @@ WHERE
 
 
 -----------------------------------------------------------------------------------------
+-- 9. What was the total volume of pizzas ordered for each hour of the day?
+
+SELECT 
+    HOUR(order_time) AS hour_of_day,
+    COUNT(*) AS total_orders
+FROM customer_orders_cleaned
+GROUP BY
+    HOUR(order_time)
+ORDER BY
+    hour_of_day;
+
+
+
+-----------------------------------------------------------------------------------------
 -- 10. What was the volume of orders for each day of the week?
 
 SELECT
