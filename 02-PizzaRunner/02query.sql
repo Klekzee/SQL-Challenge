@@ -4,6 +4,7 @@ SHOW TABLES;
 
 -----------------------------------------------------------------------------------------
 -- Cleaning customer_orders Table
+-- Dealing with NULL values
 
 DESCRIBE customer_orders;
 
@@ -33,6 +34,7 @@ SELECT * FROM customer_orders_cleaned;
 
 -----------------------------------------------------------------------------------------
 -- Cleaning runner_orders Table
+-- Dealing with NULL values and incorrect DATA TYPES
 
 DESCRIBE runner_orders;
 -- Noticed that pickup_time column is a VARCHAR(19) data type instead of a date
