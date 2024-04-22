@@ -136,6 +136,22 @@ GROUP BY
 
 
 -----------------------------------------------------------------------------------------
+-- 5. How many Vegetarian and Meatlovers were ordered by each customer?
+
+SELECT * FROM customer_orders_cleaned
+
+SELECT
+    customer_id,
+    SUM(pizza_id = 1) AS meat_lovers,
+    SUM(pizza_id = 2) AS vegetarian
+    -- SUM instead of COUNT because when the condition pizza_id = 1 is true, it evaluates to 1. When the condition is false, it evaluates to 0.
+FROM customer_orders_cleaned
+GROUP BY
+    customer_id;
+
+
+
+-----------------------------------------------------------------------------------------
 -- 6. What was the maximum number of pizzas delivered in a single order?
 
 SELECT
