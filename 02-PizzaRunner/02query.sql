@@ -158,5 +158,10 @@ WHERE
 -----------------------------------------------------------------------------------------
 -- 10. What was the volume of orders for each day of the week?
 SELECT
-    DAYNAME()
+    DAYNAME(order_time) AS day_of_week,
+    COUNT(*) AS total_orders
 FROM customer_orders_cleaned
+GROUP BY
+    DAYNAME(order_time)
+ORDER BY
+    total_orders DESC;
