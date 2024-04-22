@@ -138,8 +138,6 @@ GROUP BY
 -----------------------------------------------------------------------------------------
 -- 5. How many Vegetarian and Meatlovers were ordered by each customer?
 
-SELECT * FROM customer_orders_cleaned
-
 SELECT
     customer_id,
     SUM(pizza_id = 1) AS meat_lovers,
@@ -167,6 +165,20 @@ GROUP BY
 ORDER BY
     pizza_delivered DESC
 LIMIT 1;
+
+
+
+-----------------------------------------------------------------------------------------
+-- 7. For each customer, how many delivered pizzas had at least 1 change and how many had no changes?
+
+SELECT
+    customer_id,
+    SUM(exclusions IS NOT NULL OR extras IS NOT NULL) AS has_change,
+    SUM(exclusions IS NULL AND extras IS NULL) AS no_change
+    -- Same logic as #5
+FROM customer_orders_cleaned
+GROUP BY
+    customer_id;
 
 
 
