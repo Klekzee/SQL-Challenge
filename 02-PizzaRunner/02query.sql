@@ -126,3 +126,37 @@ GROUP BY
 ORDER BY
     pizza_delivered DESC
 LIMIT 1;
+
+
+
+-----------------------------------------------------------------------------------------
+-- 8. How many pizzas were delivered that had both exclusions and extras?
+SELECT
+    COUNT(*) AS pizza_delivered
+FROM runner_orders_cleaned AS ro
+JOIN customer_orders_cleaned AS co
+    ON co.order_id = ro.order_id
+WHERE
+    ro.cancellation IS NULL
+    AND (co.exclusions IS NOT NULL AND co.extras IS NOT NULL);
+
+-- Validation
+SELECT
+    co.order_id,
+    co.pizza_id,
+    co.exclusions,
+    co.extras
+FROM runner_orders_cleaned AS ro
+JOIN customer_orders_cleaned AS co
+    ON co.order_id = ro.order_id
+WHERE
+    ro.cancellation IS NULL
+    AND (co.exclusions IS NOT NULL AND co.extras IS NOT NULL);
+
+
+
+-----------------------------------------------------------------------------------------
+-- 10. What was the volume of orders for each day of the week?
+SELECT
+    DAYNAME()
+FROM customer_orders_cleaned
