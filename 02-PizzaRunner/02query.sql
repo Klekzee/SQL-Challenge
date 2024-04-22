@@ -112,3 +112,17 @@ GROUP BY
 
 
 -----------------------------------------------------------------------------------------
+-- 6. What was the maximum number of pizzas delivered in a single order?
+SELECT
+    co.order_id,
+    COUNT(co.pizza_id) AS pizza_delivered
+FROM runner_orders_cleaned AS ro
+JOIN customer_orders_cleaned AS co
+    ON co.order_id = ro.order_id
+WHERE
+    ro.cancellation IS NULL
+GROUP BY
+    co.order_id
+ORDER BY
+    pizza_delivered DESC
+LIMIT 1;
