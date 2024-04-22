@@ -86,6 +86,15 @@ SELECT * FROM runner_orders_cleaned;
 -- A. Pizza Metrics
 
 -----------------------------------------------------------------------------------------
+-- 1. How many pizzas were ordered?
+
+SELECT
+    COUNT(*) AS total_orders
+FROM customer_orders_cleaned;
+
+
+
+-----------------------------------------------------------------------------------------
 -- 2. How many unique customer orders were made?
 
 SELECT
@@ -95,7 +104,22 @@ FROM customer_orders_cleaned;
 
 
 -----------------------------------------------------------------------------------------
+-- 3. How many successful orders were delivered by each runner?
+
+SELECT
+    runner_id,
+    COUNT(*) AS successful_order
+FROM runner_orders_cleaned
+WHERE
+    cancellation IS NULL
+GROUP BY
+    runner_id;
+
+
+
+-----------------------------------------------------------------------------------------
 -- 4. How many of each type of pizza was delivered?
+
 SELECT
     p.pizza_name,
     COUNT(*) AS pizza_delivered
@@ -113,6 +137,7 @@ GROUP BY
 
 -----------------------------------------------------------------------------------------
 -- 6. What was the maximum number of pizzas delivered in a single order?
+
 SELECT
     co.order_id,
     COUNT(co.pizza_id) AS pizza_delivered
@@ -131,6 +156,7 @@ LIMIT 1;
 
 -----------------------------------------------------------------------------------------
 -- 8. How many pizzas were delivered that had both exclusions and extras?
+
 SELECT
     COUNT(*) AS pizza_delivered
 FROM runner_orders_cleaned AS ro
@@ -157,6 +183,7 @@ WHERE
 
 -----------------------------------------------------------------------------------------
 -- 10. What was the volume of orders for each day of the week?
+
 SELECT
     DAYNAME(order_time) AS day_of_week,
     COUNT(*) AS total_orders
