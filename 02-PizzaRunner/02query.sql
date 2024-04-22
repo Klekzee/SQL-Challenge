@@ -1,5 +1,7 @@
 -- Data Cleaning
 
+SHOW TABLES;
+
 -----------------------------------------------------------------------------------------
 -- Cleaning customer_orders Table
 
@@ -79,13 +81,34 @@ DESCRIBE runner_orders_cleaned;
 SELECT * FROM runner_orders_cleaned;
 
 
+
+-----------------------------------------------------------------------------------------
 -- A. Pizza Metrics
 
+-----------------------------------------------------------------------------------------
 -- 2. How many unique customer orders were made?
 
-SHOW TABLES;
+SELECT
+    COUNT(DISTINCT(order_id)) AS total_unique_orders
+FROM customer_orders_cleaned;
 
-SELECT * FROM customer_orders;
 
-SELECT COUNT(DISTINCT(customer_id))
-FROM customer_orders;
+
+-----------------------------------------------------------------------------------------
+-- 4. How many of each type of pizza was delivered?
+SELECT
+    p.pizza_name,
+    COUNT(*) AS pizza_delivered
+FROM runner_orders_cleaned AS ro
+JOIN customer_orders_cleaned AS co
+    ON co.order_id = ro.order_id
+JOIN pizza_names AS p
+    ON p.pizza_id = co.pizza_id
+WHERE
+    ro.cancellation IS NULL
+GROUP BY
+    p.pizza_name;
+
+
+
+-----------------------------------------------------------------------------------------
