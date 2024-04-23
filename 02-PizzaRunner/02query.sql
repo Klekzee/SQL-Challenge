@@ -260,3 +260,14 @@ GROUP BY
 
 -----------------------------------------------------------------------------------------
 -- 2. What was the average time in minutes it took for each runner to arrive at the Pizza Runner HQ to pickup the order?
+
+SELECT
+    ro.runner_id,
+    ROUND(AVG(TIMESTAMPDIFF(MINUTE, co.order_time, ro.pickup_time)), 1) AS average_time
+FROM runner_orders_cleaned AS ro
+JOIN customer_orders_cleaned AS co
+    ON co.order_id = ro.order_id
+WHERE
+    ro.cancellation IS NULL
+GROUP BY
+    ro.runner_id;
