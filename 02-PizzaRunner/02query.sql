@@ -271,3 +271,35 @@ WHERE
     ro.cancellation IS NULL
 GROUP BY
     ro.runner_id;
+
+
+
+-----------------------------------------------------------------------------------------
+-- 3. Is there any relationship between the number of pizzas and how long the order takes to prepare?
+
+-- Create a CTE to get number of pizzas per order, then get the difference between order time and pickup time.
+-- Group by order_id.
+WITH CTE_pizzacount_time_relation AS (
+    SELECT
+        co.order_id,
+        COUNT(co.pizza_id) AS number_of_pizza,
+        TIMESTAMPDIFF(MINUTE, co.order_time, ro.pickup_time) AS time_diff
+    FROM customer_orders_cleaned AS co
+    JOIN runner_orders_cleaned AS ro
+        ON ro.order_id = co.order_id
+    WHERE
+        ro.cancellation IS NULL
+    GROUP BY
+        co.order_id,
+        TIMESTAMPDIFF(MINUTE, co.order_time, ro.pickup_time)
+)
+
+SELECT
+    number_of_pizza,
+    AVG(time_diff) AS average_time
+FROM CTE_pizzacount_time_relation
+GROUP BY
+    number_of_pizza;
+
+-- From observation, number of pizzas and average time to prepare have a positive correlation.
+-- The more pizzas per order, the longer its preparation time.
