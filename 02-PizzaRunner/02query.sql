@@ -2,7 +2,7 @@
 
 SHOW TABLES;
 
------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------
 -- Cleaning customer_orders Table
 -- Dealing with NULL values
 
@@ -32,7 +32,7 @@ SELECT * FROM customer_orders_cleaned;
 
 
 
------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------
 -- Cleaning runner_orders Table
 -- Dealing with NULL values and incorrect DATA TYPES
 
@@ -86,10 +86,11 @@ SELECT * FROM runner_orders_cleaned;
 
 
 
------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------
+
 -- A. Pizza Metrics
 
------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------
 -- 1. How many pizzas were ordered?
 
 SELECT
@@ -98,7 +99,7 @@ FROM customer_orders_cleaned;
 
 
 
------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------
 -- 2. How many unique customer orders were made?
 
 SELECT
@@ -107,7 +108,7 @@ FROM customer_orders_cleaned;
 
 
 
------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------
 -- 3. How many successful orders were delivered by each runner?
 
 SELECT
@@ -121,7 +122,7 @@ GROUP BY
 
 
 
------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------
 -- 4. How many of each type of pizza was delivered?
 
 SELECT
@@ -139,21 +140,22 @@ GROUP BY
 
 
 
------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------
 -- 5. How many Vegetarian and Meatlovers were ordered by each customer?
 
 SELECT
     customer_id,
     SUM(pizza_id = 1) AS meat_lovers,
     SUM(pizza_id = 2) AS vegetarian
-    -- SUM instead of COUNT because when the condition pizza_id = 1 is true, it evaluates to 1. When the condition is false, it evaluates to 0.
+    -- SUM instead of COUNT because when the condition pizza_id = 1 is true, it evaluates to 1.
+    -- When the condition is false, it evaluates to 0.
 FROM customer_orders_cleaned
 GROUP BY
     customer_id;
 
 
 
------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------
 -- 6. What was the maximum number of pizzas delivered in a single order?
 
 SELECT
@@ -172,7 +174,7 @@ LIMIT 1;
 
 
 
------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------
 -- 7. For each customer, how many delivered pizzas had at least 1 change and how many had no changes?
 
 SELECT
@@ -186,7 +188,7 @@ GROUP BY
 
 
 
------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------
 -- 8. How many pizzas were delivered that had both exclusions and extras?
 
 SELECT
@@ -213,7 +215,7 @@ WHERE
 
 
 
------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------
 -- 9. What was the total volume of pizzas ordered for each hour of the day?
 
 SELECT 
@@ -227,7 +229,7 @@ ORDER BY
 
 
 
------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------
 -- 10. What was the volume of orders for each day of the week?
 
 SELECT
@@ -243,10 +245,11 @@ ORDER BY
 
 
 
------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------
+
 -- B. Runner and Customer Experience
 
------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------
 -- 1. How many runners signed up for each 1 week period? (i.e. week starts `2021-01-01`)
 
 SELECT
@@ -258,7 +261,7 @@ GROUP BY
 
 
 
------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------
 -- 2. What was the average time in minutes it took for each runner to arrive at the Pizza Runner HQ to pickup the order?
 
 SELECT
@@ -274,7 +277,7 @@ GROUP BY
 
 
 
------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------
 -- 3. Is there any relationship between the number of pizzas and how long the order takes to prepare?
 
 -- Create a CTE to get number of pizzas per order, then get the difference between order time and pickup time.
@@ -303,3 +306,8 @@ GROUP BY
 
 -- From observation, number of pizzas and average time to prepare have a positive correlation.
 -- The more pizzas per order, the longer its preparation time.
+
+
+
+----------------------------------------------------------------------------------------------------------
+-- 4. What was the average distance travelled for each customer?
