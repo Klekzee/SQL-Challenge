@@ -329,17 +329,27 @@ GROUP BY
 -- 5. What was the difference between the longest and shortest delivery times for all orders?
 
 SELECT
-    MAX(ro.duration) AS longest_delivery,
-    MIN(ro.duration) AS shortest_delivery,
-    (MAX(ro.duration) - MIN(ro.duration)) AS time_diff
-FROM runner_orders_cleaned AS ro
-JOIN customer_orders_cleaned AS co
-    ON co.order_id = ro.order_id
+    MAX(duration) AS longest_delivery_time,
+    MIN(duration) AS shortest_delivery_time,
+    (MAX(duration) - MIN(duration)) AS time_diff
+FROM runner_orders_cleaned
 WHERE
-    ro.cancellation IS NULL;
+    cancellation IS NULL;
 
 
 
 ----------------------------------------------------------------------------------------------------------
 -- 6. What was the average speed for each runner for each delivery and do you notice any trend for these values?
 
+-- Note: Speed unit will be km/hr
+
+SELECT * FROM runner_orders_cleaned;
+
+SELECT
+    runner_id,
+    AVG(distance / (duration / 60)) AS average_speed
+FROM runner_orders_cleaned
+WHERE
+    cancellation IS NULL
+GROUP BY
+    runner_id;
