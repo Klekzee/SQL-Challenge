@@ -353,3 +353,35 @@ WHERE
     cancellation IS NULL
 GROUP BY
     runner_id;
+
+
+
+----------------------------------------------------------------------------------------------------------
+-- 7. What is the successful delivery percentage for each runner?
+
+WITH CTE_successful_deliveries AS (
+    SELECT
+        runner_id,
+        COUNT(*) AS successful_orders
+    FROM runner_orders_cleaned
+    WHERE
+        cancellation IS NULL
+    GROUP BY
+        runner_id
+),
+
+CTE_total_deliveries AS (
+    SELECT
+        runner_id,
+        COUNT(*) AS total_orders
+    FROM runner_orders_cleaned
+    GROUP BY
+        runner_id
+)
+
+SELECT
+    sd.runner_id,
+    (successful_orders / total_orders) * 100 AS percentage
+FROM CTE_successful_deliveries AS sd
+JOIN CTE_total_deliveries AS td
+    ON td.runner_id = sd.runner_id;
