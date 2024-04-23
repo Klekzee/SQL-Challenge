@@ -338,3 +338,8 @@ JOIN customer_orders_cleaned AS co
 WHERE
     ro.cancellation IS NULL;
 
+
+
+----------------------------------------------------------------------------------------------------------
+-- 6. What was the average speed for each runner for each delivery and do you notice any trend for these values?
+
