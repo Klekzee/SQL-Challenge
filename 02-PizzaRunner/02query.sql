@@ -84,6 +84,8 @@ SELECT * FROM runner_orders_cleaned;
 
 
 
+
+
 -----------------------------------------------------------------------------------------
 -- A. Pizza Metrics
 
@@ -236,3 +238,25 @@ GROUP BY
     DAYNAME(order_time)
 ORDER BY
     total_orders DESC;
+
+
+
+
+
+-----------------------------------------------------------------------------------------
+-- B. Runner and Customer Experience
+
+-----------------------------------------------------------------------------------------
+-- 1. How many runners signed up for each 1 week period? (i.e. week starts `2021-01-01`)
+
+SELECT
+    EXTRACT(WEEK FROM registration_date) AS week,
+    COUNT(*) AS runners
+FROM runners
+GROUP BY
+    EXTRACT(WEEK FROM registration_date);
+
+
+
+-----------------------------------------------------------------------------------------
+-- 2. What was the average time in minutes it took for each runner to arrive at the Pizza Runner HQ to pickup the order?
