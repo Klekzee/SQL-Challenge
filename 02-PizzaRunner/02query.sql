@@ -311,3 +311,19 @@ GROUP BY
 
 ----------------------------------------------------------------------------------------------------------
 -- 4. What was the average distance travelled for each customer?
+
+SELECT
+    co.customer_id,
+    ROUND(AVG(ro.distance), 1) AS average_distance
+FROM runner_orders_cleaned AS ro
+JOIN customer_orders_cleaned AS co
+    ON co.order_id = ro.order_id
+WHERE
+    ro.cancellation IS NULL
+GROUP BY
+    co.customer_id;
+
+
+
+----------------------------------------------------------------------------------------------------------
+-- 5. What was the difference between the longest and shortest delivery times for all orders?
