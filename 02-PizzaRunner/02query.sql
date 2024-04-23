@@ -327,3 +327,14 @@ GROUP BY
 
 ----------------------------------------------------------------------------------------------------------
 -- 5. What was the difference between the longest and shortest delivery times for all orders?
+
+SELECT
+    MAX(ro.duration) AS longest_delivery,
+    MIN(ro.duration) AS shortest_delivery,
+    (MAX(ro.duration) - MIN(ro.duration)) AS time_diff
+FROM runner_orders_cleaned AS ro
+JOIN customer_orders_cleaned AS co
+    ON co.order_id = ro.order_id
+WHERE
+    ro.cancellation IS NULL;
+
