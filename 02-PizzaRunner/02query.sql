@@ -524,7 +524,8 @@ LIMIT 1;
 --      * Meat Lovers - Extra Bacon
 --      * Meat Lovers - Exclude Cheese, Bacon - Extra Mushroom, Peppers
 
--- Comment: This is a total mess, but it automatically returns the topping name whatever exclusion_id or extras_id are inputed.
+-- Comment:
+-- This is a total mess, but it automatically returns the topping name whatever exclusion_id or extras_id are inputed.
 -- It can be solve without using CTE but it will become even messier.
 -- I am also assuming that you can only have max 2 exclusions and extras.
 -- Do let me know if there is a better way to solve this.
@@ -582,3 +583,97 @@ FROM CTE_order_item;
 ----------------------------------------------------------------------------------------------------------
 -- 5. Generate an alphabetically ordered comma separated ingredient list for each pizza order from the customer_orders table and add a 2x in front of any relevant ingredients
 --      * For example: "Meat Lovers: 2xBacon, Beef, ... , Salami"
+
+-- Comment:
+-- Super Difficult without a SPLIT_TO_TABLE function because MySQL doesn't support it.
+-- On Hold for now
+
+SELECT * FROM customer_orders_cleaned;
+SELECT * FROM pizza_recipes_normalized;
+SELECT * FROM pizza_toppings;
+
+WITH CTE_base_pizza_ing AS (
+    SELECT
+        pizza_id,
+        GROUP_CONCAT(topping_name SEPARATOR ', ') AS ingredient_list
+    FROM pizza_recipes_normalized AS pr
+    JOIN pizza_toppings AS pt
+        ON pt.topping_id = pr.toppings
+    GROUP BY
+        pizza_id
+),
+
+CTE_order_item AS (
+    SELECT
+        *,
+        CASE
+            WHEN pizza_id = 1 THEN 'Meat Lovers'
+            ELSE 'Veggie Lovers'
+        END AS order_item_name,
+        CASE
+            WHEN LENGTH(exclusions) > 1
+            THEN CONCAT_WS(', ', (
+                SELECT topping_name
+                FROM pizza_toppings
+                WHERE topping_id = SUBSTR(exclusions, 1, 1)), (
+                    SELECT topping_name
+                    FROM pizza_toppings
+                    WHERE topping_id = SUBSTR(exclusions, 4, 1)))
+            ELSE (
+                SELECT topping_name
+                FROM pizza_toppings
+                WHERE topping_id = exclusions)
+        END AS order_item_exclusions,
+        CASE
+            WHEN LENGTH(extras) > 1
+            THEN CONCAT_WS(', ', (
+                SELECT topping_name
+                FROM pizza_toppings
+                WHERE topping_id = SUBSTR(extras, 1, 1)), (
+                    SELECT topping_name
+                    FROM pizza_toppings
+                    WHERE topping_id = SUBSTR(extras, 4, 1)))
+            ELSE (
+                SELECT topping_name
+                FROM pizza_toppings
+                WHERE topping_id = SUBSTR(extras, 1, 1))
+        END AS order_item_extras
+    FROM customer_orders_cleaned
+)
+
+SELECT
+    *
+FROM CTE_order_item AS oi
+JOIN CTE_base_pizza_ing AS pi
+    ON pi.pizza_id = oi.pizza_id;
+
+SELECT
+    CASE
+        WHEN LENGTH(exclusions) > 1
+        THEN CONCAT(order_item_name, ': ', (
+            REPLACE(pi.ingredient_list, SUBSTRING_INDEX(oi.order_item_exclusions, ', ', -1), '')
+            AND REPLACE(pi.ingredient_list, SUBSTRING_INDEX(oi.order_item_exclusions, ', ', 1), '')))
+    ELSE CONCAT(order_item_name, ': ', (
+            REPLACE(pi.ingredient_list, order_item_exclusions, '')))
+    END AS test
+FROM CTE_order_item AS oi
+JOIN CTE_base_pizza_ing AS pi
+    ON pi.pizza_id = oi.pizza_id;
+
+
+
+----------------------------------------------------------------------------------------------------------
+-- 5. What is the total quantity of each ingredient used in all delivered pizzas sorted by most frequent first?
+
+
+
+
+
+
+
+
+
+
+
+
+
