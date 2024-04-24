@@ -516,3 +516,64 @@ ORDER BY
 LIMIT 1;
 
 
+
+----------------------------------------------------------------------------------------------------------
+-- 3. Generate an order item for each record in the customers_orders table in the format of one of the following:
+--      * Meat Lovers
+--      * Meat Lovers - Exclude Beef
+--      * Meat Lovers - Extra Bacon
+--      * Meat Lovers - Exclude Cheese, Bacon - Extra Mushroom, Peppers
+
+-- Comment: This is a total mess, but it automatically returns the topping name whatever exclusion_id or extras_id are inputed.
+-- It can be solve without using CTE but it will become even messier.
+-- Do let me know if there is a better way to solve this.
+
+SELECT * FROM customer_orders_cleaned;
+
+WITH CTE_order_item AS (
+    SELECT
+        *,
+        CASE
+            WHEN pizza_id = 1 THEN 'Meat Lovers'
+            ELSE 'Veggie Lovers'
+        END AS order_item_name,
+        CASE
+            WHEN LENGTH(exclusions) > 1
+            THEN CONCAT('Exclude ', CONCAT_WS(', ', (
+                SELECT topping_name
+                FROM pizza_toppings
+                WHERE topping_id = SUBSTR(exclusions, 1, 1)), (
+                    SELECT topping_name
+                    FROM pizza_toppings
+                    WHERE topping_id = SUBSTR(exclusions, 4, 1))))
+            ELSE CONCAT('Exclude ', (
+                SELECT topping_name
+                FROM pizza_toppings
+                WHERE topping_id = SUBSTR(exclusions, 1, 1)))
+        END AS order_item_exclusions,
+        CASE
+            WHEN LENGTH(extras) > 1
+            THEN CONCAT('Extra ', CONCAT_WS(', ', (
+                SELECT topping_name
+                FROM pizza_toppings
+                WHERE topping_id = SUBSTR(extras, 1, 1)), (
+                    SELECT topping_name
+                    FROM pizza_toppings
+                    WHERE topping_id = SUBSTR(extras, 4, 1))))
+            ELSE CONCAT('Extra ', (
+                SELECT topping_name
+                FROM pizza_toppings
+                WHERE topping_id = SUBSTR(extras, 1, 1)))
+        END AS order_item_extras
+    FROM customer_orders_cleaned
+)
+
+SELECT
+    order_id,
+    customer_id,
+    pizza_id,
+    exclusions,
+    extras,
+    order_time,
+    CONCAT_WS(' - ', order_item_name, order_item_exclusions, order_item_extras) AS order_item
+FROM CTE_order_item;
