@@ -471,13 +471,48 @@ WITH CTE_common_extra AS (
 )
 
 SELECT
-    COUNT(ce.extra_id) AS most_common_extra,
+    ce.extra_id AS topping_id,
+    COUNT(ce.extra_id) AS occurence,
     pt.topping_name
 FROM CTE_common_extra AS ce
 JOIN pizza_toppings AS pt
     ON pt.topping_id = ce.extra_id
 GROUP BY
-    pt.topping_name
+    ce.extra_id, pt.topping_name
 ORDER BY
-    most_common_extra DESC
+    occurence DESC
 LIMIT 1;
+
+
+
+----------------------------------------------------------------------------------------------------------
+-- 3. What was the most common exclusion?
+
+WITH CTE_common_exclusion AS (
+    SELECT
+        SUBSTR(exclusions, 1, 1) AS exclusion_id
+    FROM customer_orders_cleaned
+    WHERE
+        exclusions IS NOT NULL
+    UNION ALL
+    SELECT
+        SUBSTRING_INDEX(exclusions, ",", -1) AS exclusion_id
+    FROM customer_orders_cleaned
+    WHERE
+        LENGTH(exclusions) > 1
+)
+
+SELECT
+    ce.exclusion_id AS topping_id,
+    COUNT(ce.exclusion_id) AS occurence,
+    pt.topping_name
+FROM CTE_common_exclusion AS ce
+JOIN pizza_toppings AS pt
+    ON pt.topping_id = ce.exclusion_id
+GROUP BY
+    ce.exclusion_id, pt.topping_name
+ORDER BY
+    occurence DESC
+LIMIT 1;
+
+
