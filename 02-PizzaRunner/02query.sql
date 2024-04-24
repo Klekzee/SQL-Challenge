@@ -429,3 +429,28 @@ SELECT * FROM pizza_recipes_normalized;
 ----------------------------------------------------------------------------------------------------------
 -- 1. What are the standard ingredients for each pizza?
 
+WITH CTE_standard_ingd AS (
+    SELECT
+        pn.pizza_id,
+        pn.pizza_name,
+        pr.toppings,
+        pt.topping_name
+    FROM pizza_names AS pn
+    JOIN pizza_recipes_normalized AS pr
+        ON pr.pizza_id = pn.pizza_id
+    JOIN pizza_toppings AS pt
+        ON pt.topping_id = pr.toppings
+    ORDER BY
+        pn.pizza_id
+)
+
+SELECT
+    pizza_name,
+    GROUP_CONCAT(topping_name SEPARATOR ', ') AS standard_ingredients
+FROM CTE_standard_ingd
+GROUP BY
+    pizza_name;
+
+
+
+----------------------------------------------------------------------------------------------------------
