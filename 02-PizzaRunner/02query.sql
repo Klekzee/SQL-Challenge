@@ -454,3 +454,30 @@ GROUP BY
 
 
 ----------------------------------------------------------------------------------------------------------
+-- 2. What was the most commonly added extra?
+
+WITH CTE_common_extra AS (
+    SELECT
+        SUBSTR(extras, 1, 1) AS extra_id
+    FROM customer_orders_cleaned
+    WHERE
+        extras IS NOT NULL
+    UNION ALL
+    SELECT
+        SUBSTRING_INDEX(extras, ",", -1) AS extra_id
+    FROM customer_orders_cleaned
+    WHERE
+        LENGTH(extras) > 1
+)
+
+SELECT
+    COUNT(ce.extra_id) AS most_common_extra,
+    pt.topping_name
+FROM CTE_common_extra AS ce
+JOIN pizza_toppings AS pt
+    ON pt.topping_id = ce.extra_id
+GROUP BY
+    pt.topping_name
+ORDER BY
+    most_common_extra DESC
+LIMIT 1;
