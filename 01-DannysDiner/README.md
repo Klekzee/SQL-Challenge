@@ -45,12 +45,13 @@ Note: All queries are written using MySQL
 1. What is the total amount each customer spent at the restaurant?
 ```sql
 SELECT 
-	s.customer_id, 
+    s.customer_id, 
     SUM(m.price) AS total_spent
 FROM sales AS s
 LEFT JOIN menu AS m
-	ON m.product_id = s.product_id
-GROUP BY s.customer_id;
+    ON m.product_id = s.product_id
+GROUP BY
+    s.customer_id;
 ```
 # Key Takeaways
 
