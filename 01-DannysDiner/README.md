@@ -10,6 +10,9 @@
     * [1.1 Entity Relationship Diagram](#entity-relationship-diagram)
 * [2 Problem Statement](#problem-statement)
 * [3 Question and Problems](#question-and-problems)
+* [4 Key Takeaways](#key-takeaways)
+
+<br>
 
 * [Schema](https://github.com/Klekzee/SQL-Challenge/blob/c76851a59da9be51918bfb9be36c2634eb02146f/01-DannysDiner/01schema.sql)
 * [Queries](https://github.com/Klekzee/SQL-Challenge/blob/c76851a59da9be51918bfb9be36c2634eb02146f/01-DannysDiner/02query.sql)
@@ -61,7 +64,7 @@ GROUP BY
 
 **Answer**
 
-![Query 1](assets/q1.png)
+![Query 1](assets/q01.png)
 
 <br>
 
@@ -78,7 +81,7 @@ GROUP BY
 
 **Answer**
 
-![Query 2](assets/q2.png)
+![Query 2](assets/q02.png)
 
 <br>
 
@@ -106,7 +109,7 @@ WHERE
 
 **Answer**
 
-![Query 3](assets/q3.png)
+![Query 3](assets/q03.png)
 
 <br>
 
@@ -128,7 +131,7 @@ LIMIT 1;
 
 **Answer**
 
-![Query 4](assets/q4.png)
+![Query 4](assets/q04.png)
 
 <br>
 
@@ -144,7 +147,7 @@ WITH CTE_most_popular_item AS (
     FROM sales AS s
     JOIN menu AS m
         ON m.product_id = s.product_id
-	GROUP BY
+    GROUP BY
         s.customer_id, m.product_name
 )
 
@@ -159,11 +162,194 @@ WHERE
 
 **Answer**
 
-![Query 5](assets/q5.png)
+![Query 5](assets/q05.png)
 
 <br>
 
+**6. Which item was purchased first by the customer after they became a member?**
 
+```sql
+WITH CTE_first_purchace_members AS (
+    SELECT
+        mem.customer_id,
+        mem.join_date,
+        s.order_date,
+        menu.product_name,
+        RANK() OVER (PARTITION BY mem.customer_id ORDER BY s.order_date) AS ranking
+    FROM members AS mem
+    LEFT JOIN sales AS s
+        ON s.customer_id = mem.customer_id
+    LEFT JOIN menu
+        ON menu.product_id = s.product_id
+    WHERE
+        s.order_date >= mem.join_date
+)
+
+SELECT
+    customer_id,
+    join_date,
+    order_date,
+    product_name
+FROM CTE_first_purchace_members
+WHERE
+    ranking = 1;
+```
+
+**Answer**
+
+![Query 6](assets/q06.png)
+
+<br>
+
+**7. Which item was purchased just before the customer became a member?**
+
+```sql
+WITH CTE_first_purchace_members AS (
+    SELECT
+        mem.customer_id,
+        mem.join_date,
+        s.order_date,
+        menu.product_name,
+        RANK() OVER (PARTITION BY mem.customer_id ORDER BY s.order_date DESC) AS ranking
+    FROM members AS mem
+    LEFT JOIN sales AS s
+        ON s.customer_id = mem.customer_id
+    LEFT JOIN menu
+        ON menu.product_id = s.product_id
+    WHERE
+        s.order_date < mem.join_date
+)
+
+SELECT
+    customer_id,
+    join_date,
+    order_date,
+    product_name
+FROM CTE_first_purchace_members
+WHERE
+    ranking = 1;
+```
+
+**Answer**
+
+![Query 7](assets/q07.png)
+
+<br>
+
+**8. What is the total items and amount spent for each member before they became a member?**
+
+```sql
+WITH CTE_items_purchased_by_each_customer AS (
+    SELECT
+        members.customer_id,
+		members.join_date,
+		sales.order_date,
+		sales.product_id,
+		menu.product_name,
+		menu.price
+    FROM members
+    JOIN sales
+        ON sales.customer_id = members.customer_id
+    JOIN menu
+        ON menu.product_id = sales.product_id
+    WHERE
+        sales.order_date < members.join_date
+)
+
+SELECT
+    customer_id,
+	COUNT(*) AS total_items,
+	SUM(price) AS total_amount
+FROM CTE_items_purchased_by_each_customer
+GROUP BY
+    customer_id
+ORDER BY
+    customer_id;
+```
+
+**Answer**
+
+![Query 8](assets/q08.png)
+
+<br>\
+
+**9. If each $1 spent equates to 10 points and sushi has a 2x points multiplier - how many points would each customer have?**
+
+```sql
+WITH CTE_sushi_points AS (
+    SELECT
+        sales.customer_id,
+		sales.product_id,
+		menu.product_name,
+		menu.price,
+        CASE
+            WHEN menu.product_name = "sushi" THEN (menu.price * 10) * 2
+            ELSE menu.price * 10
+        END AS total_points
+    FROM sales
+    JOIN menu
+        ON menu.product_id = sales.product_id
+)
+
+SELECT
+    customer_id,
+	SUM(total_points) AS total_points
+FROM CTE_sushi_points
+GROUP BY
+    customer_id;
+```
+
+**Answer**
+
+![Query 9](assets/q09.png)
+
+<br>
+
+**10. In the first week after a customer joins the program (including their join date) they earn 2x points on all items, not just sushi - how many points do customer A and B have at the end of January?**
+
+```sql
+WITH CTE_membership_points AS (
+	SELECT 
+        members.customer_id,
+		members.join_date,
+		sales.order_date,
+		menu.product_name,
+		menu.price,
+        CASE
+            WHEN sales.order_date >= members.join_date AND sales.order_date < DATE_ADD(members.join_date, INTERVAL 7 DAY) AND menu.product_name = "sushi"
+                THEN (menu.price * 10) * 2 * 2
+			WHEN sales.order_date >= members.join_date AND sales.order_date < DATE_ADD(members.join_date, INTERVAL 7 DAY)
+				THEN (menu.price * 10) * 2
+			WHEN product_name = "sushi"
+				THEN (menu.price * 10) * 2
+			ELSE menu.price * 10
+        END AS total_points
+    FROM sales
+    JOIN members
+        ON members.customer_id = sales.customer_id
+    JOIN menu
+        ON menu.product_id = sales.product_id
+    WHERE
+        sales.order_date BETWEEN "2021-01-01" AND "2021-01-31"
+    ORDER BY
+        members.join_date
+)
+
+SELECT
+    customer_id,
+	SUM(total_points) AS total_points
+FROM CTE_membership_points
+GROUP BY
+    customer_id
+ORDER BY
+    customer_id;
+```
+
+**Answer**
+
+![Query 10](assets/q10.png)
+
+<br>
 
 # Key Takeaways
 
