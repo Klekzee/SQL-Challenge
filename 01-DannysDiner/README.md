@@ -10,6 +10,8 @@
     * [1.1 Entity Relationship Diagram](#entity-relationship-diagram)
 * [2 Problem Statement](#problem-statement)
 * [3 Question and Problems](#question-and-problems)
+    * [3.1 Main Questions](#question-and-problems)
+    * [3.2 Bonus Questions](#bonus-questions)
 * [4 Key Takeaways](#key-takeaways)
 
 <br>
@@ -64,7 +66,11 @@ GROUP BY
 
 **Answer**
 
-![Query 1](assets/q01.png)
+| **customer_id** | **total_spent** |
+|:---------------:|:---------------:|
+| A               | 76              |
+| B               | 74              |
+| C               | 36              |
 
 <br>
 
@@ -350,6 +356,39 @@ ORDER BY
 ![Query 10](assets/q10.png)
 
 <br>
+
+# Bonus Questions
+
+**Join All The Things**
+
+Recreate the following table output using the available data:
+
+```sql
+CREATE OR REPLACE VIEW joined_table AS (
+    SELECT
+        sales.customer_id,
+        sales.order_date,
+        menu.product_name,
+        menu.price,
+        CASE
+            WHEN members.join_date IS NULL THEN "N"
+            WHEN members.join_date > sales.order_date THEN "N"
+            ELSE "Y"
+        END AS member
+    FROM sales
+    LEFT JOIN members
+        ON members.customer_id = sales.customer_id
+    JOIN menu
+        ON menu.product_id = sales.product_id
+    ORDER BY sales.customer_id, sales.order_date
+);
+
+-- Refresh the Database
+SELECT *
+FROM joined_table;
+```
+
+
 
 # Key Takeaways
 
