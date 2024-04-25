@@ -86,12 +86,12 @@ GROUP BY
 
 ```sql
 WITH CTE_first_purchase AS (
-	SELECT 
+    SELECT 
         s.customer_id,
         s.order_date,
         m.product_name,
         ROW_NUMBER() OVER (PARTITION BY s.customer_id ORDER BY s.order_date) AS ranking
-	FROM sales AS s
+    FROM sales AS s
     JOIN menu AS m
         ON m.product_id = s.product_id
 )
@@ -129,6 +129,39 @@ LIMIT 1;
 **Answer**
 
 ![Query 4](assets/q4.png)
+
+<br>
+
+**5. Which item was the most popular for each customer?**
+
+```sql
+WITH CTE_most_popular_item AS (
+    SELECT
+        s.customer_id,
+        m.product_name,
+        COUNT(m.product_id) AS total_purchased,
+        RANK() OVER (PARTITION BY s.customer_id ORDER BY COUNT(m.product_id) DESC) AS ranking
+    FROM sales AS s
+    JOIN menu AS m
+        ON m.product_id = s.product_id
+	GROUP BY
+        s.customer_id, m.product_name
+)
+
+SELECT
+    customer_id,
+    product_name,
+    total_purchased
+FROM CTE_most_popular_item
+WHERE
+    ranking = 1;
+```
+
+**Answer**
+
+![Query 5](assets/q5.png)
+
+<br>
 
 
 
