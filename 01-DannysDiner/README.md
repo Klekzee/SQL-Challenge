@@ -87,21 +87,21 @@ GROUP BY
 ```sql
 WITH CTE_first_purchase AS (
 	SELECT 
-		s.customer_id,
+        s.customer_id,
         s.order_date,
         m.product_name,
         ROW_NUMBER() OVER (PARTITION BY s.customer_id ORDER BY s.order_date) AS ranking
 	FROM sales AS s
     JOIN menu AS m
-		ON m.product_id = s.product_id
+        ON m.product_id = s.product_id
 )
 
 SELECT 
-	customer_id,
+    customer_id,
     product_name
 FROM CTE_first_purchase
 WHERE
-	ranking = 1;
+    ranking = 1;
 ```
 
 **Answer**
@@ -110,15 +110,20 @@ WHERE
 
 <br>
 
-**2. How many days has each customer visited the restaurant?**
+**4. What is the most purchased item on the menu and how many times was it purchased by all customers?**
 
 ```sql
-SELECT 
-    customer_id,
-    COUNT(DISTINCT(order_date)) AS days_visited
-FROM sales
-GROUP BY
-    customer_id;
+SELECT
+    m.product_name,
+	COUNT(m.product_id) AS total_purchased
+FROM menu AS m
+JOIN sales AS s
+    ON s.product_id = m.product_id
+GROUP BY 
+    m.product_name
+ORDER BY 
+    total_purchased DESC
+LIMIT 1;
 ```
 
 **Answer**
