@@ -6,6 +6,6 @@ This repository will contain all my SQL scripts for all the case studies from th
 
 ## Case Study #1 - Danny's Diner
 
-* [Problem](link here)
-* [Solution](link here)
+* [Case Study Link](https://8weeksqlchallenge.com/case-study-1/)
+* [Solution](01-DannysDiner/README.md)
 
