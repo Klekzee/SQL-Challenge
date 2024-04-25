@@ -76,10 +76,42 @@ The following questions are related creating basic data tables that Danny and hi
 
 Recreate the following table output using the available data:
 
-![1](99img2.png)
+| **customer_id** | **order_date** | **product_name** | **price** | **member** |
+|:---------------:|:--------------:|:----------------:|:---------:|:----------:|
+| A               | 1/1/21         | sushi            | 10        | N          |
+| A               | 1/1/21         | curry            | 15        | N          |
+| A               | 1/7/21         | curry            | 15        | Y          |
+| A               | 1/10/21        | ramen            | 12        | Y          |
+| A               | 1/11/21        | ramen            | 12        | Y          |
+| A               | 1/11/21        | ramen            | 12        | Y          |
+| B               | 1/1/21         | curry            | 15        | N          |
+| B               | 1/2/21         | curry            | 15        | N          |
+| B               | 1/4/21         | sushi            | 10        | N          |
+| B               | 1/11/21        | sushi            | 10        | Y          |
+| B               | 1/16/21        | ramen            | 12        | Y          |
+| B               | 2/1/21         | ramen            | 12        | Y          |
+| C               | 1/1/21         | ramen            | 12        | N          |
+| C               | 1/1/21         | ramen            | 12        | N          |
+| C               | 1/7/21         | ramen            | 12        | N          |
 
 ## Rank All The Things
 
 Danny also requires further information about the ranking of customer products, but he purposely does not need the ranking for non-member purchases so he expects null ranking values for the records when customers are not yet part of the loyalty program.
 
-![2](99img3.png)
+| **customer_id** | **order_date** | **product_name** | **price** | **member** | **ranking** |
+|:---------------:|:--------------:|:----------------:|:---------:|:----------:|:-----------:|
+| A               | 1/1/21         | sushi            | 10        | N          |             |
+| A               | 1/1/21         | curry            | 15        | N          |             |
+| A               | 1/7/21         | curry            | 15        | Y          | 1           |
+| A               | 1/10/21        | ramen            | 12        | Y          | 2           |
+| A               | 1/11/21        | ramen            | 12        | Y          | 3           |
+| A               | 1/11/21        | ramen            | 12        | Y          | 3           |
+| B               | 1/1/21         | curry            | 15        | N          |             |
+| B               | 1/2/21         | curry            | 15        | N          |             |
+| B               | 1/4/21         | sushi            | 10        | N          |             |
+| B               | 1/11/21        | sushi            | 10        | Y          | 1           |
+| B               | 1/16/21        | ramen            | 12        | Y          | 2           |
+| B               | 2/1/21         | ramen            | 12        | Y          | 3           |
+| C               | 1/1/21         | ramen            | 12        | N          |             |
+| C               | 1/1/21         | ramen            | 12        | N          |             |
+| C               | 1/7/21         | ramen            | 12        | N          |             |
