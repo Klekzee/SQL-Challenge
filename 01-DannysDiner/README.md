@@ -118,7 +118,7 @@ WHERE
 ```sql
 SELECT
     m.product_name,
-	COUNT(m.product_id) AS total_purchased
+    COUNT(m.product_id) AS total_purchased
 FROM menu AS m
 JOIN sales AS s
     ON s.product_id = m.product_id
@@ -242,11 +242,11 @@ WHERE
 WITH CTE_items_purchased_by_each_customer AS (
     SELECT
         members.customer_id,
-		members.join_date,
-		sales.order_date,
-		sales.product_id,
-		menu.product_name,
-		menu.price
+        members.join_date,
+        sales.order_date,
+        sales.product_id,
+        menu.product_name,
+        menu.price
     FROM members
     JOIN sales
         ON sales.customer_id = members.customer_id
@@ -258,8 +258,8 @@ WITH CTE_items_purchased_by_each_customer AS (
 
 SELECT
     customer_id,
-	COUNT(*) AS total_items,
-	SUM(price) AS total_amount
+    COUNT(*) AS total_items,
+    SUM(price) AS total_amount
 FROM CTE_items_purchased_by_each_customer
 GROUP BY
     customer_id
@@ -279,9 +279,9 @@ ORDER BY
 WITH CTE_sushi_points AS (
     SELECT
         sales.customer_id,
-		sales.product_id,
-		menu.product_name,
-		menu.price,
+        sales.product_id,
+        menu.product_name,
+        menu.price,
         CASE
             WHEN menu.product_name = "sushi" THEN (menu.price * 10) * 2
             ELSE menu.price * 10
@@ -293,7 +293,7 @@ WITH CTE_sushi_points AS (
 
 SELECT
     customer_id,
-	SUM(total_points) AS total_points
+    SUM(total_points) AS total_points
 FROM CTE_sushi_points
 GROUP BY
     customer_id;
@@ -311,18 +311,18 @@ GROUP BY
 WITH CTE_membership_points AS (
 	SELECT 
         members.customer_id,
-		members.join_date,
-		sales.order_date,
-		menu.product_name,
-		menu.price,
+        members.join_date,
+        sales.order_date,
+        menu.product_name,
+        menu.price,
         CASE
             WHEN sales.order_date >= members.join_date AND sales.order_date < DATE_ADD(members.join_date, INTERVAL 7 DAY) AND menu.product_name = "sushi"
                 THEN (menu.price * 10) * 2 * 2
-			WHEN sales.order_date >= members.join_date AND sales.order_date < DATE_ADD(members.join_date, INTERVAL 7 DAY)
-				THEN (menu.price * 10) * 2
-			WHEN product_name = "sushi"
-				THEN (menu.price * 10) * 2
-			ELSE menu.price * 10
+            WHEN sales.order_date >= members.join_date AND sales.order_date < DATE_ADD(members.join_date, INTERVAL 7 DAY)
+                THEN (menu.price * 10) * 2
+            WHEN product_name = "sushi"
+                THEN (menu.price * 10) * 2
+            ELSE menu.price * 10
         END AS total_points
     FROM sales
     JOIN members
@@ -337,7 +337,7 @@ WITH CTE_membership_points AS (
 
 SELECT
     customer_id,
-	SUM(total_points) AS total_points
+    SUM(total_points) AS total_points
 FROM CTE_membership_points
 GROUP BY
     customer_id
