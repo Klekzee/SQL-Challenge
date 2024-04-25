@@ -43,7 +43,7 @@ Note: All queries are written using MySQL
 <br>
 
 1. What is the total amount each customer spent at the restaurant?
-```{SQL}
+```sql
 SELECT 
 	s.customer_id, 
     SUM(m.price) AS total_spent
