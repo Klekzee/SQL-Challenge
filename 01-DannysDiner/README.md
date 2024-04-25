@@ -87,7 +87,11 @@ GROUP BY
 
 **Answer**
 
-![Query 2](assets/q02.png)
+| **customer_id** | **days_visited** |
+|:---------------:|:----------------:|
+| A               | 4                |
+| B               | 6                |
+| C               | 2                |
 
 <br>
 
@@ -115,7 +119,11 @@ WHERE
 
 **Answer**
 
-![Query 3](assets/q03.png)
+| **customer_id** | **product_name** |
+|:---------------:|:----------------:|
+| A               | sushi            |
+| B               | curry            |
+| C               | ramen            |
 
 <br>
 
@@ -137,7 +145,9 @@ LIMIT 1;
 
 **Answer**
 
-![Query 4](assets/q04.png)
+| **product_name** | **total_purchased** |
+|:----------------:|:-------------------:|
+| ramen            | 8                   |
 
 <br>
 
@@ -168,7 +178,13 @@ WHERE
 
 **Answer**
 
-![Query 5](assets/q05.png)
+| **customer_id** | **product_name** | **total_purchased** |
+|:---------------:|:----------------:|:-------------------:|
+| A               | ramen            | 3                   |
+| B               | curry            | 2                   |
+| B               | sushi            | 2                   |
+| B               | ramen            | 2                   |
+| C               | ramen            | 3                   |
 
 <br>
 
@@ -203,7 +219,10 @@ WHERE
 
 **Answer**
 
-![Query 6](assets/q06.png)
+| **customer_id** | **join_date** | **order_date** | **product_name** |
+|:---------------:|:-------------:|:--------------:|:----------------:|
+| A               | 1/7/21        | 1/7/21         | curry            |
+| B               | 1/9/21        | 1/11/21        | sushi            |
 
 <br>
 
@@ -238,7 +257,11 @@ WHERE
 
 **Answer**
 
-![Query 7](assets/q07.png)
+| **customer_id** | **join_date** | **order_date** | **product_name** |
+|:---------------:|:-------------:|:--------------:|:----------------:|
+| A               | 1/7/21        | 1/1/21         | sushi            |
+| A               | 1/7/21        | 1/1/21         | curry            |
+| B               | 1/9/21        | 1/4/21         | sushi            |
 
 <br>
 
@@ -275,9 +298,12 @@ ORDER BY
 
 **Answer**
 
-![Query 8](assets/q08.png)
+| **customer_id** | **total_items** | **total_amount** |
+|:---------------:|:---------------:|:----------------:|
+| A               | 2               | 25               |
+| B               | 3               | 40               |
 
-<br>\
+<br>
 
 **9. If each $1 spent equates to 10 points and sushi has a 2x points multiplier - how many points would each customer have?**
 
@@ -307,7 +333,11 @@ GROUP BY
 
 **Answer**
 
-![Query 9](assets/q09.png)
+| **customer_id** | **total_points** |
+|:---------------:|:----------------:|
+| A               | 860              |
+| B               | 940              |
+| C               | 360              |
 
 <br>
 
@@ -353,7 +383,10 @@ ORDER BY
 
 **Answer**
 
-![Query 10](assets/q10.png)
+| **customer_id** | **total_points** |
+|:---------------:|:----------------:|
+| A               | 1370             |
+| B               | 1020             |
 
 <br>
 
@@ -388,7 +421,70 @@ SELECT *
 FROM joined_table;
 ```
 
+**Answer**
 
+| **customer_id** | **order_date** | **product_name** | **price** | **member** |
+|:---------------:|:--------------:|:----------------:|:---------:|:----------:|
+| A               | 1/1/21         | sushi            | 10        | N          |
+| A               | 1/1/21         | curry            | 15        | N          |
+| A               | 1/7/21         | curry            | 15        | Y          |
+| A               | 1/10/21        | ramen            | 12        | Y          |
+| A               | 1/11/21        | ramen            | 12        | Y          |
+| A               | 1/11/21        | ramen            | 12        | Y          |
+| B               | 1/1/21         | curry            | 15        | N          |
+| B               | 1/2/21         | curry            | 15        | N          |
+| B               | 1/4/21         | sushi            | 10        | N          |
+| B               | 1/11/21        | sushi            | 10        | Y          |
+| B               | 1/16/21        | ramen            | 12        | Y          |
+| B               | 2/1/21         | ramen            | 12        | Y          |
+| C               | 1/1/21         | ramen            | 12        | N          |
+| C               | 1/1/21         | ramen            | 12        | N          |
+| C               | 1/7/21         | ramen            | 12        | N          |
+
+<br>
+
+**Rank All The Things**
+
+Danny also requires further information about the ranking of customer products, but he purposely does not need the ranking for non-member purchases so he expects null ranking values for the records when customers are not yet part of the loyalty program.
+
+```sql
+CREATE OR REPLACE VIEW rankings_table AS (
+    SELECT
+        *,
+        CASE 
+            WHEN member = 'N' THEN null
+            ELSE DENSE_RANK() OVER (PARTITION BY customer_id, member ORDER BY order_date)
+        END AS ranking
+    FROM
+        joined_table
+);
+
+-- Refresh the Database
+SELECT *
+FROM rankings_table;
+```
+
+**Answer**
+
+| **customer_id** | **order_date** | **product_name** | **price** | **member** | **ranking** |
+|:---------------:|:--------------:|:----------------:|:---------:|:----------:|:-----------:|
+| A               | 1/1/21         | sushi            | 10        | N          |             |
+| A               | 1/1/21         | curry            | 15        | N          |             |
+| A               | 1/7/21         | curry            | 15        | Y          | 1           |
+| A               | 1/10/21        | ramen            | 12        | Y          | 2           |
+| A               | 1/11/21        | ramen            | 12        | Y          | 3           |
+| A               | 1/11/21        | ramen            | 12        | Y          | 3           |
+| B               | 1/1/21         | curry            | 15        | N          |             |
+| B               | 1/2/21         | curry            | 15        | N          |             |
+| B               | 1/4/21         | sushi            | 10        | N          |             |
+| B               | 1/11/21        | sushi            | 10        | Y          | 1           |
+| B               | 1/16/21        | ramen            | 12        | Y          | 2           |
+| B               | 2/1/21         | ramen            | 12        | Y          | 3           |
+| C               | 1/1/21         | ramen            | 12        | N          |             |
+| C               | 1/1/21         | ramen            | 12        | N          |             |
+| C               | 1/7/21         | ramen            | 12        | N          |             |
+
+<br>
 
 # Key Takeaways
 
