@@ -176,7 +176,8 @@ SELECT
 	COUNT(*) AS total_items,
 	SUM(price) AS total_amount
 FROM CTE_items_purchased_by_each_customer
-GROUP BY customer_id;
+GROUP BY customer_id
+ORDER BY customer_id;
 
 
 -- 8. Alternate Soln.

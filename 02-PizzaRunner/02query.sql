@@ -663,7 +663,7 @@ JOIN CTE_base_pizza_ing AS pi
 
 
 ----------------------------------------------------------------------------------------------------------
--- 5. What is the total quantity of each ingredient used in all delivered pizzas sorted by most frequent first?
+-- 6. What is the total quantity of each ingredient used in all delivered pizzas sorted by most frequent first?
 
 
 
