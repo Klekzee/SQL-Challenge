@@ -1,8 +1,12 @@
 # Case Study #1 - Danny's Diner
 
-![test](99img.png)
+![test](assets/99img.png)
 
-# Contents
+# Table of Contents
+
+* [1 Introduction](#Introduction)
+* [2 Problem Statement](#Problem-Statement)
+
 
 * [Schema](https://github.com/Klekzee/SQL-Challenge/blob/c76851a59da9be51918bfb9be36c2634eb02146f/01-DannysDiner/01schema.sql)
 * [Queries](https://github.com/Klekzee/SQL-Challenge/blob/c76851a59da9be51918bfb9be36c2634eb02146f/01-DannysDiner/02query.sql)
