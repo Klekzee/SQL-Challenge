@@ -16,9 +16,9 @@
 
 <br>
 
-* [Schema](SQL-Challenge/01-DannysDiner/01schema.sql)
-* [Queries](SQL-Challenge/01-DannysDiner/02query.sql)
-* [Answers](SQL-Challenge/01-DannysDiner/03answers.md)
+* [Schema](01schema.sql)
+* [Queries](02query.sql)
+* [Answers](03answers.md)
 
 <br>
 
