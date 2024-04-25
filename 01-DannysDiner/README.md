@@ -9,8 +9,8 @@
 * [1 Introduction](#introduction)
     * [1.1 Entity Relationship Diagram](#entity-relationship-diagram)
 * [2 Problem Statement](#problem-statement)
-* [3 Question and Problems](#question-and-problems)
-    * [3.1 Main Questions](#question-and-problems)
+* [3 Question and Answers](#question-and-Answers)
+    * [3.1 Main Questions](#question-and-Answers)
     * [3.2 Bonus Questions](#bonus-questions)
 * [4 Key Takeaways](#key-takeaways)
 
@@ -45,7 +45,7 @@ Having this deeper connection with his customers will help him deliver a better 
 
 <br>
 
-# Question and Problems
+# Question and Answers
 
 Note: All queries are written using MySQL
 
