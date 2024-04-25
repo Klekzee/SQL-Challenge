@@ -413,7 +413,8 @@ CREATE OR REPLACE VIEW joined_table AS (
         ON members.customer_id = sales.customer_id
     JOIN menu
         ON menu.product_id = sales.product_id
-    ORDER BY sales.customer_id, sales.order_date
+    ORDER BY
+        sales.customer_id, sales.order_date
 );
 
 -- Refresh the Database
@@ -455,8 +456,7 @@ CREATE OR REPLACE VIEW rankings_table AS (
             WHEN member = 'N' THEN null
             ELSE DENSE_RANK() OVER (PARTITION BY customer_id, member ORDER BY order_date)
         END AS ranking
-    FROM
-        joined_table
+    FROM joined_table
 );
 
 -- Refresh the Database
