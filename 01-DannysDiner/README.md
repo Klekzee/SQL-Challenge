@@ -16,9 +16,9 @@
 
 <br>
 
-* [Schema](https://github.com/Klekzee/SQL-Challenge/blob/c76851a59da9be51918bfb9be36c2634eb02146f/01-DannysDiner/01schema.sql)
-* [Queries](https://github.com/Klekzee/SQL-Challenge/blob/c76851a59da9be51918bfb9be36c2634eb02146f/01-DannysDiner/02query.sql)
-* [Answers](https://github.com/Klekzee/SQL-Challenge/blob/c76851a59da9be51918bfb9be36c2634eb02146f/01-DannysDiner/03answers.md)
+* [Schema](01-DannysDiner/01schema.sql)
+* [Queries](01-DannysDiner/02query.sql)
+* [Answers](01-DannysDiner/03answers.md)
 
 <br>
 
