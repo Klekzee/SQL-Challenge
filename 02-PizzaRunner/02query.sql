@@ -344,13 +344,12 @@ WHERE
 -- Note: Speed unit will be km/hr
 
 SELECT
+    order_id,
     runner_id,
-    ROUND(AVG(distance / (duration / 60)), 2) AS average_speed
+    ROUND(distance / (duration / 60), 2) AS average_speed
 FROM runner_orders_cleaned
 WHERE
     cancellation IS NULL
-GROUP BY
-    runner_id;
 
 
 
@@ -721,7 +720,7 @@ WITH CTE_total_revenue AS (
 )
 
 SELECT
-    SUM(gross_with_extras)
+    SUM(gross_with_extras) AS total_revenue
 FROM CTE_total_revenue;
 
 
@@ -768,3 +767,98 @@ SELECT
 FROM runner_orders_ratings
 GROUP BY
     runner_id;
+
+
+
+----------------------------------------------------------------------------------------------------------
+-- 4. Using your newly generated table - can you join all of the information together to form a table which has the following information for successful deliveries?
+
+--      * customer_id
+--      * order_id
+--      * runner_id
+--      * rating
+--      * order_time
+--      * pickup_time
+--      * Time between order and pickup
+--      * Delivery duration
+--      * Average speed
+--      * Total number of pizzas
+
+WITH CTE_customer_orders_normalized AS (
+    SELECT
+        order_id,
+        customer_id,
+        order_time,
+        COUNT(pizza_id) AS total_pizza_ordered
+    FROM customer_orders_cleaned
+    GROUP BY
+        order_id, customer_id, order_time
+)
+
+SELECT
+    co.customer_id,
+    ro.order_id,
+    ro.runner_id,
+    ROUND((rr.efficiency + rr.food_status + rr.service) / 3, 1) AS rating,
+    co.order_time,
+    ro.pickup_time,
+    ROUND(TIMESTAMPDIFF(MINUTE, co.order_time, ro.pickup_time), 1) AS order_pickup_time_diff,
+    ro.duration,
+    ROUND(ro.distance / (ro.duration / 60), 2) AS average_speed_kph,
+    co.total_pizza_ordered
+FROM CTE_customer_orders_normalized AS co
+JOIN runner_orders_cleaned AS ro
+    ON ro.order_id = co.order_id
+JOIN runner_orders_ratings AS rr
+    ON rr.order_id = ro.order_id
+WHERE
+    ro.cancellation IS NULL;
+
+
+
+----------------------------------------------------------------------------------------------------------
+-- 5. If a Meat Lovers pizza was $12 and Vegetarian $10 fixed prices with no cost for extras and each runner is paid $0.30 per kilometre traveled 
+--    - how much money does Pizza Runner have left over after these deliveries?
+
+-- Compute the pay for each runner then sum it all up
+-- Total revenue - Pay for all runner = Money Left
+
+WITH CTE_total_revenue AS (
+    SELECT
+        runner_id,
+        SUM(CASE
+            WHEN co.pizza_id = 1 THEN 12
+            ELSE 10
+        END) AS gross
+    FROM customer_orders_cleaned AS co
+    JOIN runner_orders_cleaned AS ro
+        ON ro.order_id = co.order_id
+    WHERE
+        ro.cancellation IS NULL
+    GROUP BY runner_id
+),
+
+CTE_total_pay_for_runners AS (
+    SELECT
+        runner_id,
+        SUM(ROUND(distance * 0.3, 2)) AS pay
+    FROM runner_orders_cleaned
+    WHERE
+        cancellation IS NULL
+    GROUP BY
+        runner_id
+)
+
+SELECT
+    SUM(gross) AS total_revenue,
+    SUM(pay) AS total_pay,
+    (SUM(gross) - SUM(pay)) AS money_left
+FROM CTE_total_revenue AS tr
+JOIN CTE_total_pay_for_runners AS tp
+    ON tp.runner_id = tr.runner_id;
+
+
+
+
+
+---
