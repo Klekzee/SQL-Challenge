@@ -1196,9 +1196,11 @@ ORDER BY
 
 From the SQL case study, I reinforced my understanding about:
 
-1. Common Table Expressions (CTEs)
-2. Group By Aggregates
-3. Window Functions for Ranking
-4. Table Joins
+1. Common table expressions
+2. Group by aggregates
+3. Table joins
+4. String transformations
+5. Dealing with null values
+6. Regular expressions
 
-I also learned new SQL functions such as `ROW_NUMBER()`, `RANK()`, `DENSE_RANK()`, and `DATE_ADD()`.
+This case study proved more challenging than the first, requiring not only more questions to be answered but also data manipulation before querying the final answer. It was at this point that I realized the value of using Common Table Expressions (CTEs). I also made use of several functions I rarely use, such as `TIMESTAMPDIFF`, `DAYNAME`, and `SUBSTRING_INDEX`, which greatly improved the readability of my queries and prevented them from becoming overly messy. The case study effectively increased in difficulty with each question, making it both challenging and enjoyable to solve.
