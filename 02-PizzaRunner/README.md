@@ -604,22 +604,27 @@ WHERE
 -- Note: Speed unit will be km/hr
 
 SELECT
+    order_id,
     runner_id,
-    ROUND(AVG(distance / (duration / 60)), 2) AS average_speed
+    ROUND(distance / (duration / 60), 2) AS average_speed
 FROM runner_orders_cleaned
 WHERE
     cancellation IS NULL
-GROUP BY
-    runner_id;
 ```
 
 **Answer**
 
-| **runner_id** | **average_speed** |
-|:-------------:|:-----------------:|
-| 1             | 45.54             |
-| 2             | 62.9              |
-| 3             | 40                |
+| **order_id** | **runner_id** | **average_speed** |
+|:------------:|:-------------:|:-----------------:|
+| 1            | 1             | 37.5              |
+| 2            | 1             | 44.44             |
+| 3            | 1             | 40.2              |
+| 4            | 2             | 35.1              |
+| 5            | 3             | 40                |
+| 7            | 2             | 60                |
+| 8            | 2             | 93.6              |
+| 10           | 1             | 60                |
+
 
 <br>
 
@@ -896,12 +901,29 @@ FROM CTE_order_item;
 **1. If a Meat Lovers pizza costs $12 and Vegetarian costs $10 and there were no charges for changes - how much money has Pizza Runner made so far if there are no delivery fees?**
 
 ```sql
--- WIP
+WITH CTE_total_revenue AS (
+    SELECT
+        CASE
+            WHEN co.pizza_id = 1 THEN 12
+            ELSE 10
+        END AS gross
+    FROM customer_orders_cleaned AS co
+    JOIN runner_orders_cleaned AS ro
+        ON ro.order_id = co.order_id
+    WHERE
+        ro.cancellation IS NULL
+)
+
+SELECT
+    SUM(gross) AS total_revenue
+FROM CTE_total_revenue;
 ```
 
 **Answer**
 
-`WIP`
+| **total_revenue** |
+|:-----------------:|
+| 138               |
 
 <br>
 
@@ -910,59 +932,211 @@ FROM CTE_order_item;
 * **Add cheese is $1 extra**
 
 ```sql
--- WIP
+WITH CTE_total_revenue AS (
+    SELECT
+        CASE
+            WHEN co.pizza_id = 1 AND LENGTH(co.extras) > 1
+                THEN 12 + 2
+            WHEN co.pizza_id = 1 AND LENGTH(co.extras) = 1
+                THEN 12 + 1
+            WHEN co.pizza_id = 1 THEN 12
+            WHEN co.pizza_id = 2 AND LENGTH(co.extras) > 1
+                THEN 10 + 2
+            WHEN co.pizza_id = 2 AND LENGTH(co.extras) = 1
+                THEN 10 + 1
+            WHEN co.pizza_id = 2 THEN 10
+        END AS gross_with_extras
+    FROM customer_orders_cleaned AS co
+    JOIN runner_orders_cleaned AS ro
+        ON ro.order_id = co.order_id
+    WHERE
+        ro.cancellation IS NULL
+)
+
+SELECT
+    SUM(gross_with_extras) AS total_revenue
+FROM CTE_total_revenue;
 ```
 
 **Answer**
 
-`WIP`
+| **total_revenue** |
+|:-----------------:|
+| 142               |
 
 <br>
 
 **3. The Pizza Runner team now wants to add an additional ratings system that allows customers to rate their runner, how would you design an additional table for this new dataset - generate a schema for this new table and insert your own data for ratings for each successful customer order between 1 to 5.**
 
 ```sql
--- WIP
+-- Ratings Based on:
+--      * Efficiency (Delivery is on time)
+--      * Food Status (Delivery instructions were followed)
+--      * Runners Service (Runner's professionalism)
+
+-- Bonus:
+--      * Overall Rating
+
+DROP TABLE IF EXISTS runner_orders_ratings;
+CREATE TABLE runner_orders_ratings (
+    order_id INT,
+    runner_id INT,
+    efficiency INT,
+    food_status INT,
+    service INT,
+    PRIMARY KEY (order_id)
+);
+
+INSERT INTO runner_orders_ratings (order_id, runner_id, efficiency, food_status, service)
+VALUES
+    (1, 1, 4, 5, 4),
+    (2, 1, 5, 5, 5),
+    (3, 1, 4, 4, 5),
+    (4, 2, 4, 5, 4),
+    (5, 3, 3, 4, 3),
+    (7, 2, 5, 3, 4),
+    (8, 2, 3, 5, 4),
+    (10, 1, 4, 4, 3);
+
+SELECT * FROM runner_orders_ratings;
+
+-- Getting the overall_rating per runner
+SELECT
+    runner_id,
+    ROUND((AVG(efficiency) + AVG(food_status) + AVG(service)) / 3, 1) AS overall_rating
+FROM runner_orders_ratings
+GROUP BY
+    runner_id;
 ```
 
 **Answer**
 
-`WIP`
+`runner_orders_ratings`
+
+| **order_id** | **runner_id** | **efficiency** | **food_status** | **service** |
+|:------------:|:-------------:|:--------------:|:---------------:|:-----------:|
+| 1            | 1             | 4              | 5               | 4           |
+| 2            | 1             | 5              | 5               | 5           |
+| 3            | 1             | 4              | 4               | 5           |
+| 4            | 2             | 4              | 5               | 4           |
+| 5            | 3             | 3              | 4               | 3           |
+| 7            | 2             | 5              | 3               | 4           |
+| 8            | 2             | 3              | 5               | 4           |
+| 10           | 1             | 4              | 4               | 3           |
+
+`Overall Rating`
+
+| **runner_id** | **overall_rating** |
+|:-------------:|:------------------:|
+| 1             | 4.3                |
+| 2             | 4.1                |
+| 3             | 3.3                |
 
 <br>
 
 **4. Using your newly generated table - can you join all of the information together to form a table which has the following information for successful deliveries?**
 
-* **customer_id**
-* **order_id**
-* **runner_id**
-* **rating**
-* **order_time**
-* **pickup_time**
+* **`customer_id`**
+* **`order_id`**
+* **`runner_id`**
+* **`rating`**
+* **`order_time`**
+* **`pickup_time`**
 * **Time between order and pickup**
 * **Delivery duration**
 * **Average speed**
 * **Total number of pizzas**
 
 ```sql
--- WIP
+WITH CTE_customer_orders_normalized AS (
+    SELECT
+        order_id,
+        customer_id,
+        order_time,
+        COUNT(pizza_id) AS total_pizza_ordered
+    FROM customer_orders_cleaned
+    GROUP BY
+        order_id, customer_id, order_time
+)
+
+SELECT
+    co.customer_id,
+    ro.order_id,
+    ro.runner_id,
+    ROUND((rr.efficiency + rr.food_status + rr.service) / 3, 1) AS rating,
+    co.order_time,
+    ro.pickup_time,
+    ROUND(TIMESTAMPDIFF(MINUTE, co.order_time, ro.pickup_time), 1) AS order_pickup_time_diff,
+    ro.duration,
+    ROUND(ro.distance / (ro.duration / 60), 2) AS average_speed_kph,
+    co.total_pizza_ordered
+FROM CTE_customer_orders_normalized AS co
+JOIN runner_orders_cleaned AS ro
+    ON ro.order_id = co.order_id
+JOIN runner_orders_ratings AS rr
+    ON rr.order_id = ro.order_id
+WHERE
+    ro.cancellation IS NULL;
 ```
 
 **Answer**
 
-`WIP`
+| **customer_id** | **order_id** | **runner_id** | **rating** | **order_time**      | **pickup_time**     | **order_pickup_time_diff** | **duration** | **average_speed_kph** | **total_pizza_ordered** |
+|:---------------:|:------------:|:-------------:|:----------:|:-------------------:|:-------------------:|:--------------------------:|:------------:|:---------------------:|:-----------------------:|
+| 101             | 1            | 1             | 4.3        | 2020-01-01 18:05:02 | 2020-01-01 18:15:34 | 10                         | 32           | 37.5                  | 1                       |
+| 101             | 2            | 1             | 5.0        | 2020-01-01 19:00:52 | 2020-01-01 19:10:54 | 10                         | 27           | 44.44                 | 1                       |
+| 102             | 3            | 1             | 4.3        | 2020-01-02 23:51:23 | 2020-01-03 00:12:37 | 21                         | 20           | 40.2                  | 2                       |
+| 103             | 4            | 2             | 4.3        | 2020-01-04 13:23:46 | 2020-01-04 13:53:03 | 29                         | 40           | 35.1                  | 3                       |
+| 104             | 5            | 3             | 3.3        | 2020-01-08 21:00:29 | 2020-01-08 21:10:57 | 10                         | 15           | 40                    | 1                       |
+| 105             | 7            | 2             | 4.0        | 2020-01-08 21:20:29 | 2020-01-08 21:30:45 | 10                         | 25           | 60                    | 1                       |
+| 102             | 8            | 2             | 4.0        | 2020-01-09 23:54:33 | 2020-01-10 00:15:02 | 20                         | 15           | 93.6                  | 1                       |
+| 104             | 10           | 1             | 3.7        | 2020-01-11 18:34:49 | 2020-01-11 18:50:20 | 15                         | 10           | 60                    | 2                       |
 
 <br>
 
 **5. If a Meat Lovers pizza was $12 and Vegetarian $10 fixed prices with no cost for extras and each runner is paid $0.30 per kilometre traveled - how much money does Pizza Runner have left over after these deliveries?**
 
 ```sql
--- WIP
+WITH CTE_total_revenue AS (
+    SELECT
+        runner_id,
+        SUM(CASE
+            WHEN co.pizza_id = 1 THEN 12
+            ELSE 10
+        END) AS gross
+    FROM customer_orders_cleaned AS co
+    JOIN runner_orders_cleaned AS ro
+        ON ro.order_id = co.order_id
+    WHERE
+        ro.cancellation IS NULL
+    GROUP BY runner_id
+),
+
+CTE_total_pay_for_runners AS (
+    SELECT
+        runner_id,
+        SUM(ROUND(distance * 0.3, 2)) AS pay
+    FROM runner_orders_cleaned
+    WHERE
+        cancellation IS NULL
+    GROUP BY
+        runner_id
+)
+
+SELECT
+    SUM(gross) AS total_revenue,
+    SUM(pay) AS total_pay,
+    (SUM(gross) - SUM(pay)) AS money_left
+FROM CTE_total_revenue AS tr
+JOIN CTE_total_pay_for_runners AS tp
+    ON tp.runner_id = tr.runner_id;
 ```
 
 **Answer**
 
-`WIP`
+| **total_revenue** | **total_pay** | **money_left** |
+|:-----------------:|:-------------:|:--------------:|
+| 138               | 43.56         | 94.44          |
 
 <br>
 <br>
