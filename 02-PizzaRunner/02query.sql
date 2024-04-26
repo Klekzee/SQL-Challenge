@@ -343,11 +343,9 @@ WHERE
 
 -- Note: Speed unit will be km/hr
 
-SELECT * FROM runner_orders_cleaned;
-
 SELECT
     runner_id,
-    AVG(distance / (duration / 60)) AS average_speed
+    ROUND(AVG(distance / (duration / 60)), 2) AS average_speed
 FROM runner_orders_cleaned
 WHERE
     cancellation IS NULL
