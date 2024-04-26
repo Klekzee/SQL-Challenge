@@ -663,15 +663,108 @@ JOIN CTE_base_pizza_ing AS pi
 ----------------------------------------------------------------------------------------------------------
 -- 6. What is the total quantity of each ingredient used in all delivered pizzas sorted by most frequent first?
 
+-- WORK IN PROGRESS
 
 
 
 
 
+----------------------------------------------------------------------------------------------------------
+
+-- D. Pricing and Ratings
+
+----------------------------------------------------------------------------------------------------------
+-- 1. If a Meat Lovers pizza costs $12 and Vegetarian costs $10 and there were no charges for changes - how much money has Pizza Runner made so far if there are no delivery fees?
+
+WITH CTE_total_revenue AS (
+    SELECT
+        CASE
+            WHEN co.pizza_id = 1 THEN 12
+            ELSE 10
+        END AS gross
+    FROM customer_orders_cleaned AS co
+    JOIN runner_orders_cleaned AS ro
+        ON ro.order_id = co.order_id
+    WHERE
+        ro.cancellation IS NULL
+)
+
+SELECT
+    SUM(gross) AS total_revenue
+FROM CTE_total_revenue;
 
 
 
+----------------------------------------------------------------------------------------------------------
+-- 2. What if there was an additional $1 charge for any pizza extras?
+--      * Add cheese is $1 extra
+
+WITH CTE_total_revenue AS (
+    SELECT
+        CASE
+            WHEN co.pizza_id = 1 AND LENGTH(co.extras) > 1
+                THEN 12 + 2
+            WHEN co.pizza_id = 1 AND LENGTH(co.extras) = 1
+                THEN 12 + 1
+            WHEN co.pizza_id = 1 THEN 12
+            WHEN co.pizza_id = 2 AND LENGTH(co.extras) > 1
+                THEN 10 + 2
+            WHEN co.pizza_id = 2 AND LENGTH(co.extras) = 1
+                THEN 10 + 1
+            WHEN co.pizza_id = 2 THEN 10
+        END AS gross_with_extras
+    FROM customer_orders_cleaned AS co
+    JOIN runner_orders_cleaned AS ro
+        ON ro.order_id = co.order_id
+    WHERE
+        ro.cancellation IS NULL
+)
+
+SELECT
+    SUM(gross_with_extras)
+FROM CTE_total_revenue;
 
 
 
+----------------------------------------------------------------------------------------------------------
+-- 3. The Pizza Runner team now wants to add an additional ratings system that allows customers to rate their runner, how would you design an additional table for this new dataset
+--    - generate a schema for this new table and insert your own data for ratings for each successful customer order between 1 to 5.
 
+-- Ratings Based on:
+--      * Efficiency (Delivery is on time)
+--      * Food Status (Delivery instructions were followed)
+--      * Runners Service (Runners professionalism)
+
+-- Bonus:
+--      * Overall Rating (Average of the other ratings)
+
+DROP TABLE IF EXISTS runner_orders_ratings;
+CREATE TABLE runner_orders_ratings (
+    order_id INT,
+    runner_id INT,
+    efficiency INT,
+    food_status INT,
+    service INT,
+    PRIMARY KEY (order_id)
+);
+
+INSERT INTO runner_orders_ratings (order_id, runner_id, efficiency, food_status, service)
+VALUES
+    (1, 1, 4, 5, 4),
+    (2, 1, 5, 5, 5),
+    (3, 1, 4, 4, 5),
+    (4, 2, 4, 5, 4),
+    (5, 3, 3, 4, 3),
+    (7, 2, 5, 3, 4),
+    (8, 2, 3, 5, 4),
+    (10, 1, 4, 4, 3);
+
+SELECT * FROM runner_orders_ratings;
+
+-- Getting the overall_rating per runner.
+SELECT
+    runner_id,
+    ROUND((AVG(efficiency) + AVG(food_status) + AVG(service)) / 3, 1) AS overall_rating
+FROM runner_orders_ratings
+GROUP BY
+    runner_id;
