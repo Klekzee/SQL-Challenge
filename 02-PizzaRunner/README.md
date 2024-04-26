@@ -176,6 +176,58 @@ SELECT * FROM runner_orders_cleaned;
 | 10           | 1             | 2020-01-11 18:50:20 | 10           | 10           | `NULL`                  |
 
 <br>
+
+**3. Normalizing the pizza_recipes table**
+
+* We will be using this for the Ingredient Optimization
+
+```sql
+DROP TABLE IF EXISTS pizza_recipes_normalized;
+CREATE TABLE pizza_recipes_normalized (
+    pizza_id INT,
+    toppings INT
+);
+
+INSERT INTO pizza_recipes_normalized (pizza_id, toppings)
+VALUES
+    (1, 1),
+    (1, 2),
+    (1, 3),
+    (1, 4),
+    (1, 5),
+    (1, 6),
+    (1, 8),
+    (1, 10),
+    (2, 4),
+    (2, 6),
+    (2, 7),
+    (2, 9),
+    (2, 11),
+    (2, 12);
+
+SELECT * FROM pizza_recipes_normalized;
+```
+
+**Output**
+
+| **pizza_id** | **toppings** |
+|:------------:|:------------:|
+| 1            | 1            |
+| 1            | 2            |
+| 1            | 3            |
+| 1            | 4            |
+| 1            | 5            |
+| 1            | 6            |
+| 1            | 8            |
+| 1            | 10           |
+| 2            | 4            |
+| 2            | 6            |
+| 2            | 7            |
+| 2            | 9            |
+| 2            | 11           |
+| 2            | 12           |
+
+<br>
 <br>
 
 ## A. Pizza Metrics
@@ -607,59 +659,231 @@ JOIN CTE_total_deliveries AS td
 
 ## C. Ingredient Optimisation
 
-****
+**1. What are the standard ingredients for each pizza?**
 
 ```sql
+WITH CTE_standard_ingd AS (
+    SELECT
+        pn.pizza_id,
+        pn.pizza_name,
+        pr.toppings,
+        pt.topping_name
+    FROM pizza_names AS pn
+    JOIN pizza_recipes_normalized AS pr
+        ON pr.pizza_id = pn.pizza_id
+    JOIN pizza_toppings AS pt
+        ON pt.topping_id = pr.toppings
+    ORDER BY
+        pn.pizza_id
+)
 
+SELECT
+    pizza_name,
+    GROUP_CONCAT(topping_name SEPARATOR ', ') AS standard_ingredients
+FROM CTE_standard_ingd
+GROUP BY
+    pizza_name;
 ```
 
 **Answer**
 
-
+| **pizza_name** | **standard_ingredients**                                              |
+|:--------------:|:---------------------------------------------------------------------:|
+| Meatlovers     | Bacon, BBQ Sauce, Beef, Cheese, Chicken, Mushrooms, Pepperoni, Salami |
+| Vegetarian     | Cheese, Mushrooms, Onions, Peppers, Tomatoes, Tomato Sauce            |
 
 <br>
 
-****
+**2. What was the most commonly added extra?**
 
 ```sql
+WITH CTE_common_extra AS (
+    SELECT
+        SUBSTR(extras, 1, 1) AS extra_id
+    FROM customer_orders_cleaned
+    WHERE
+        extras IS NOT NULL
+    UNION ALL
+    SELECT
+        SUBSTRING_INDEX(extras, ",", -1) AS extra_id
+    FROM customer_orders_cleaned
+    WHERE
+        LENGTH(extras) > 1
+)
 
+SELECT
+    ce.extra_id AS topping_id,
+    COUNT(ce.extra_id) AS occurence,
+    pt.topping_name
+FROM CTE_common_extra AS ce
+JOIN pizza_toppings AS pt
+    ON pt.topping_id = ce.extra_id
+GROUP BY
+    ce.extra_id, pt.topping_name
+ORDER BY
+    occurence DESC
+LIMIT 1; -- Remove the limit if you want to see the full list.
 ```
 
 **Answer**
 
-
+| **topping_id** | **occurence** | **topping_name** |
+|:--------------:|:-------------:|:----------------:|
+| 1              | 4             | Bacon            |
 
 <br>
 
-****
+**3. What was the most common exclusion?**
 
 ```sql
+WITH CTE_common_exclusion AS (
+    SELECT
+        SUBSTR(exclusions, 1, 1) AS exclusion_id
+    FROM customer_orders_cleaned
+    WHERE
+        exclusions IS NOT NULL
+    UNION ALL
+    SELECT
+        SUBSTRING_INDEX(exclusions, ",", -1) AS exclusion_id
+    FROM customer_orders_cleaned
+    WHERE
+        LENGTH(exclusions) > 1
+)
 
+SELECT
+    ce.exclusion_id AS topping_id,
+    COUNT(ce.exclusion_id) AS occurence,
+    pt.topping_name
+FROM CTE_common_exclusion AS ce
+JOIN pizza_toppings AS pt
+    ON pt.topping_id = ce.exclusion_id
+GROUP BY
+    ce.exclusion_id, pt.topping_name
+ORDER BY
+    occurence DESC
+LIMIT 1; -- Remove the limit if you want to see the full list.
 ```
 
 **Answer**
 
-
+| **topping_id** | **occurence** | **topping_name** |
+|:--------------:|:-------------:|:----------------:|
+| 4              | 4             | Cheese           |
 
 <br>
 
-****
+**4. Generate an order item for each record in the customers_orders table in the format of one of the following:**
+
+* **Meat Lovers**
+* **Meat Lovers - Exclude Beef**
+* **Meat Lovers - Extra Bacon**
+* **Meat Lovers - Exclude Cheese, Bacon - Extra Mushroom, Peppers**
 
 ```sql
+-- Comment:
+-- This is a total mess, but it automatically returns the topping name whatever exclusion_id or extras_id are inputed. Basically it becomes automated.
+-- It can be solve without using CTE but it will become even messier.
+-- I am also assuming that you can only have max 2 exclusions and extras.
+-- Do let me know if there is a better way to solve this.
 
+WITH CTE_order_item AS (
+    SELECT
+        *,
+        CASE
+            WHEN pizza_id = 1 THEN 'Meat Lovers'
+            ELSE 'Veggie Lovers'
+        END AS order_item_name,
+        CASE
+            WHEN LENGTH(exclusions) > 1
+            THEN CONCAT('Exclude ', CONCAT_WS(', ', (
+                SELECT topping_name
+                FROM pizza_toppings
+                WHERE topping_id = SUBSTR(exclusions, 1, 1)), (
+                    SELECT topping_name
+                    FROM pizza_toppings
+                    WHERE topping_id = SUBSTR(exclusions, 4, 1))))
+            ELSE CONCAT('Exclude ', (
+                SELECT topping_name
+                FROM pizza_toppings
+                WHERE topping_id = SUBSTR(exclusions, 1, 1)))
+        END AS order_item_exclusions,
+        CASE
+            WHEN LENGTH(extras) > 1
+            THEN CONCAT('Extra ', CONCAT_WS(', ', (
+                SELECT topping_name
+                FROM pizza_toppings
+                WHERE topping_id = SUBSTR(extras, 1, 1)), (
+                    SELECT topping_name
+                    FROM pizza_toppings
+                    WHERE topping_id = SUBSTR(extras, 4, 1))))
+            ELSE CONCAT('Extra ', (
+                SELECT topping_name
+                FROM pizza_toppings
+                WHERE topping_id = SUBSTR(extras, 1, 1)))
+        END AS order_item_extras
+    FROM customer_orders_cleaned
+)
+
+SELECT
+    order_id,
+    customer_id,
+    pizza_id,
+    exclusions,
+    extras,
+    order_time,
+    CONCAT_WS(' - ', order_item_name, order_item_exclusions, order_item_extras) AS order_item
+FROM CTE_order_item;
 ```
 
 **Answer**
 
-
+| **order_id** | **customer_id** | **pizza_id** | **exclusions** | **extras** | **order_time**      | **order_item**                                                   |
+|:------------:|:---------------:|:------------:|:--------------:|:----------:|:-------------------:|:----------------------------------------------------------------:|
+| 1            | 101             | 1            | `NULL`         | `NULL`     | 2020-01-01 18:05:02 | Meat Lovers                                                      |
+| 2            | 101             | 1            | `NULL`         | `NULL`     | 2020-01-01 19:00:52 | Meat Lovers                                                      |
+| 3            | 102             | 1            | `NULL`         | `NULL`     | 2020-01-02 23:51:23 | Meat Lovers                                                      |
+| 3            | 102             | 2            | `NULL`         | `NULL`     | 2020-01-02 23:51:23 | Veggie Lovers                                                    |
+| 4            | 103             | 1            | 4              | `NULL`     | 2020-01-04 13:23:46 | Meat Lovers - Exclude Cheese                                     |
+| 4            | 103             | 1            | 4              | `NULL`     | 2020-01-04 13:23:46 | Meat Lovers - Exclude Cheese                                     |
+| 4            | 103             | 2            | 4              | `NULL`     | 2020-01-04 13:23:46 | Veggie Lovers - Exclude Cheese                                   |
+| 5            | 104             | 1            | `NULL`         | 1          | 2020-01-08 21:00:29 | Meat Lovers - Extra Bacon                                        |
+| 6            | 101             | 2            | `NULL`         | `NULL`     | 2020-01-08 21:03:13 | Veggie Lovers                                                    |
+| 7            | 105             | 2            | `NULL`         | 1          | 2020-01-08 21:20:29 | Veggie Lovers - Extra Bacon                                      |
+| 8            | 102             | 1            | `NULL`         | `NULL`     | 2020-01-09 23:54:33 | Meat Lovers                                                      |
+| 9            | 103             | 1            | 4              | 1, 5       | 2020-01-10 11:22:59 | Meat Lovers - Exclude Cheese - Extra Bacon, Chicken              |
+| 10           | 104             | 1            | `NULL`         |            | 2020-01-11 18:34:49 | Meat Lovers                                                      |
+| 10           | 104             | 1            | 2, 6           | 1, 4       | 2020-01-11 18:34:49 | Meat Lovers - Exclude BBQ Sauce, Mushrooms - Extra Bacon, Cheese |
 
 <br>
 
+**5. Generate an alphabetically ordered comma separated ingredient list for each pizza order from the customer_orders table and add a 2x in front of any relevant ingredients**
 
+* **For example: "Meat Lovers: 2xBacon, Beef, ... , Salami"**
 
+```sql
+-- WIP
+```
 
+**Answer**
 
+`WIP`
 
+<br>
+
+**6. What is the total quantity of each ingredient used in all delivered pizzas sorted by most frequent first?**
+
+```sql
+-- WIP
+```
+
+**Answer**
+
+`WIP`
+
+<br>
+<br>
+
+## D. Pricing and Ratings
 
 
 
