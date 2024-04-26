@@ -9,11 +9,18 @@
 * [1 Introduction](#introduction)
     * [1.1 Entity Relationship Diagram](#entity-relationship-diagram)
 * [2 Problem Statement](#problem-statement)
+* [3 Questions and Answers](#questions-and-answers)
+    * [3.1 Data Cleaning](#data-cleaning)
+    * [3.2 Pizza Metrics](#a-pizza-metrics)
+    * [3.3 Runner and Customer Experience](#b-runner-and-customer-experience)
+    * [3.4 Ingredient Optimisation](#c-ingredient-optimisation)
+    * [3.5 Pricing and Ratings](#d-pricing-and-ratings)
+* [4 Key Takeaways](#key-takeaways)
 
+<br>
 
-* [Schema]()
-* [Queries]()
-* [Answers]()
+* [Schema](01schema.sql)
+* [Queries](02query.sql)
 
 <br>
 
@@ -46,7 +53,7 @@ This case study has LOTS of questions - they are broken up by area of focus incl
 
 <Br>
 
-# Question and Problems
+# Questions and Answers
 
 **Note:**
 * Most queries are written using MySQL.
