@@ -117,8 +117,7 @@ CREATE TABLE runner_orders_cleaned (
         END AS pickup_time,
         CASE
             WHEN distance LIKE 'null' THEN NULL
-            WHEN distance LIKE '%km' 
-                THEN TRIM('km' FROM distance)
+            WHEN distance LIKE '%km' THEN TRIM('km' FROM distance)
             ELSE distance
         END AS distance,
         CASE
@@ -175,6 +174,8 @@ SELECT * FROM runner_orders_cleaned;
 | 8            | 2             | 2020-01-10 00:15:02 | 23.4         | 15           | `NULL`                  |
 | 9            | 2             | `NULL`              | `NULL`       | `NULL`       | Customer Cancellation   |
 | 10           | 1             | 2020-01-11 18:50:20 | 10           | 10           | `NULL`                  |
+
+<br>
 <br>
 
 ## A. Pizza Metrics
@@ -404,9 +405,255 @@ ORDER BY
 | Friday          | 1                |
 
 <br>
+<br>
+
+## B. Runner and Customer Experience
+
+**1. How many runners signed up for each 1 week period? (i.e. week starts `2021-01-01`)**
+
+```sql
+SELECT
+    EXTRACT(WEEK FROM registration_date) AS week,
+    COUNT(*) AS runners
+FROM runners
+GROUP BY
+    EXTRACT(WEEK FROM registration_date);
+```
+
+**Answer**
+
+| **week** | **runners** |
+|:--------:|:-----------:|
+| 0        | 1           |
+| 1        | 2           |
+| 2        | 1           |
+
+<br>
+
+**2. What was the average time in minutes it took for each runner to arrive at the Pizza Runner HQ to pickup the order?**
+
+```sql
+SELECT
+    ro.runner_id,
+    ROUND(AVG(TIMESTAMPDIFF(MINUTE, co.order_time, ro.pickup_time)), 1) AS average_time
+FROM runner_orders_cleaned AS ro
+JOIN customer_orders_cleaned AS co
+    ON co.order_id = ro.order_id
+WHERE
+    ro.cancellation IS NULL
+GROUP BY
+    ro.runner_id;
+```
+
+**Answer**
+
+| **runner_id** | **average_time** |
+|:-------------:|:----------------:|
+| 1             | 15.3             |
+| 2             | 23.4             |
+| 3             | 10.0             |
+
+<br>
+
+**3. Is there any relationship between the number of pizzas and how long the order takes to prepare?**
+
+```sql
+WITH CTE_pizzacount_time_relation AS (
+    SELECT
+        co.order_id,
+        COUNT(co.pizza_id) AS number_of_pizza,
+        TIMESTAMPDIFF(MINUTE, co.order_time, ro.pickup_time) AS time_diff
+    FROM customer_orders_cleaned AS co
+    JOIN runner_orders_cleaned AS ro
+        ON ro.order_id = co.order_id
+    WHERE
+        ro.cancellation IS NULL
+    GROUP BY
+        co.order_id,
+        TIMESTAMPDIFF(MINUTE, co.order_time, ro.pickup_time)
+)
+
+SELECT
+    number_of_pizza,
+    AVG(time_diff) AS average_time
+FROM CTE_pizzacount_time_relation
+GROUP BY
+    number_of_pizza;
+```
+
+**Answer**
+
+| **number_of_pizza** | **average_time** |
+|:-------------------:|:----------------:|
+| 1                   | 12.0000          |
+| 2                   | 18.0000          |
+| 3                   | 29.0000          |
+
+<br>
+
+**4. What was the average distance travelled for each customer?**
+
+```sql
+SELECT
+    co.customer_id,
+    ROUND(AVG(ro.distance), 1) AS average_distance
+FROM runner_orders_cleaned AS ro
+JOIN customer_orders_cleaned AS co
+    ON co.order_id = ro.order_id
+WHERE
+    ro.cancellation IS NULL
+GROUP BY
+    co.customer_id;
+```
+
+**Answer**
+
+| **customer_id** | **average_distance** |
+|:---------------:|:--------------------:|
+| 101             | 20                   |
+| 102             | 16.7                 |
+| 103             | 23.4                 |
+| 104             | 10                   |
+| 105             | 25                   |
+
+<br>
+
+**5. What was the difference between the longest and shortest delivery times for all orders?**
+
+```sql
+SELECT
+    MAX(duration) AS longest_delivery_time,
+    MIN(duration) AS shortest_delivery_time,
+    (MAX(duration) - MIN(duration)) AS time_diff
+FROM runner_orders_cleaned
+WHERE
+    cancellation IS NULL;
+```
+
+**Answer**
+
+| **longest_delivery_time** | **shortest_delivery_time** | **time_diff** |
+|:-------------------------:|:--------------------------:|:-------------:|
+| 40                        | 10                         | 30            |
+
+<br>
+
+**6. What was the average speed for each runner for each delivery and do you notice any trend for these values?**
+
+```sql
+-- Note: Speed unit will be km/hr
+
+SELECT
+    runner_id,
+    ROUND(AVG(distance / (duration / 60)), 2) AS average_speed
+FROM runner_orders_cleaned
+WHERE
+    cancellation IS NULL
+GROUP BY
+    runner_id;
+```
+
+**Answer**
+
+| **runner_id** | **average_speed** |
+|:-------------:|:-----------------:|
+| 1             | 45.54             |
+| 2             | 62.9              |
+| 3             | 40                |
+
+<br>
+
+**7. What is the successful delivery percentage for each runner?**
+
+```sql
+WITH CTE_successful_deliveries AS (
+    SELECT
+        runner_id,
+        COUNT(*) AS successful_orders
+    FROM runner_orders_cleaned
+    WHERE
+        cancellation IS NULL
+    GROUP BY
+        runner_id
+),
+
+CTE_total_deliveries AS (
+    SELECT
+        runner_id,
+        COUNT(*) AS total_orders
+    FROM runner_orders_cleaned
+    GROUP BY
+        runner_id
+)
+
+SELECT
+    sd.runner_id,
+    ROUND((successful_orders / total_orders) * 100, 1) AS percentage
+FROM CTE_successful_deliveries AS sd
+JOIN CTE_total_deliveries AS td
+    ON td.runner_id = sd.runner_id;
+```
+
+**Answer**
+
+| **runner_id** | **percentage** |
+|:-------------:|:--------------:|
+| 1             | 100.0          |
+| 2             | 75.0           |
+| 3             | 50.0           |
+
+<br>
+<br>
+
+## C. Ingredient Optimisation
+
+****
+
+```sql
+
+```
+
+**Answer**
 
 
 
+<br>
+
+****
+
+```sql
+
+```
+
+**Answer**
+
+
+
+<br>
+
+****
+
+```sql
+
+```
+
+**Answer**
+
+
+
+<br>
+
+****
+
+```sql
+
+```
+
+**Answer**
+
+
+
+<br>
 
 
 
