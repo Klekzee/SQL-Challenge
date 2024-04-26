@@ -379,7 +379,7 @@ CTE_total_deliveries AS (
 
 SELECT
     sd.runner_id,
-    (successful_orders / total_orders) * 100 AS percentage
+    ROUND((successful_orders / total_orders) * 100, 1) AS percentage
 FROM CTE_successful_deliveries AS sd
 JOIN CTE_total_deliveries AS td
     ON td.runner_id = sd.runner_id;
