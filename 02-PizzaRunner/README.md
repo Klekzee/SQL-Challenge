@@ -701,7 +701,7 @@ GROUP BY
 **Answer**
 
 | **pizza_name** | **standard_ingredients**                                              |
-|:--------------:|:---------------------------------------------------------------------:|
+|:--------------:|-----------------------------------------------------------------------|
 | Meatlovers     | Bacon, BBQ Sauce, Beef, Cheese, Chicken, Mushrooms, Pepperoni, Salami |
 | Vegetarian     | Cheese, Mushrooms, Onions, Peppers, Tomatoes, Tomato Sauce            |
 
@@ -851,7 +851,7 @@ FROM CTE_order_item;
 **Answer**
 
 | **order_id** | **customer_id** | **pizza_id** | **exclusions** | **extras** | **order_time**      | **order_item**                                                   |
-|:------------:|:---------------:|:------------:|:--------------:|:----------:|:-------------------:|:----------------------------------------------------------------:|
+|:------------:|:---------------:|:------------:|:--------------:|:----------:|:-------------------:|------------------------------------------------------------------|
 | 1            | 101             | 1            | `NULL`         | `NULL`     | 2020-01-01 18:05:02 | Meat Lovers                                                      |
 | 2            | 101             | 1            | `NULL`         | `NULL`     | 2020-01-01 19:00:52 | Meat Lovers                                                      |
 | 3            | 102             | 1            | `NULL`         | `NULL`     | 2020-01-02 23:51:23 | Meat Lovers                                                      |
@@ -1146,12 +1146,48 @@ JOIN CTE_total_pay_for_runners AS tp
 If Danny wants to expand his range of pizzas - how would this impact the existing data design? Write an `INSERT` statement to demonstrate what would happen if a new `Supreme` pizza with all the toppings was added to the Pizza Runner menu?
 
 ```sql
--- WIP
+-- Inserting into pizza_names table
+INSERT INTO pizza_names (pizza_id, pizza_name)
+VALUES (3, 'Supreme');
+
+-- Inserting into pizza_recioes_normalized table
+INSERT INTO pizza_recipes_normalized
+VALUES
+    (3, 1),
+    (3, 2),
+    (3, 4),
+    (3, 5),
+    (3, 6),
+    (3, 7),
+    (3, 8),
+    (3, 9),
+    (3, 10),
+    (3, 11),
+    (3, 12);
+
+SELECT
+    pn.pizza_id,
+    pn.pizza_name,
+    GROUP_CONCAT(topping_name SEPARATOR ', ') AS pizza_recipe
+FROM pizza_names AS pn
+JOIN pizza_recipes_normalized AS pr
+    ON pr.pizza_id = pn.pizza_id
+JOIN pizza_toppings AS pt
+    ON pt.topping_id = pr.toppings
+GROUP BY
+    pn.pizza_id,
+    pn.pizza_name
+ORDER BY
+    pn.pizza_id;
 ```
 
 **Answer**
 
-`WIP`
+| **pizza_id** | **pizza_name** | **pizza_recipe**                                                                                         |
+|:------------:|:--------------:|----------------------------------------------------------------------------------------------------------|
+| 1            | Meatlovers     | Bacon, BBQ Sauce, Beef, Cheese, Chicken, Mushrooms, Pepperoni, Salami                                    |
+| 2            | Vegetarian     | Cheese, Mushrooms, Onions, Peppers, Tomatoes, Tomato Sauce                                               |
+| 3            | Supreme        | Bacon, BBQ Sauce, Cheese, Chicken, Mushrooms, Onions, Pepperoni, Peppers, Salami, Tomatoes, Tomato Sauce |
 
 <br>
 <br>
